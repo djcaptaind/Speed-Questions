@@ -23,6 +23,18 @@
         <div class="brand"><div class="brand-badge">HOST</div><div><h1>Instructor Control</h1><p>Live classroom game manager</p></div></div>
         <div class="room-pill">Room: <span id="roomLabel"></span></div>
       </header>
+      <section id="joinPanel" class="card join-panel">
+        <div class="join-panel-copy">
+          <div class="kicker">Teams Join Here</div>
+          <h2>Scan to Join the Game</h2>
+          <p>Scan the QR code or open the team link. Then enter room code <strong id="joinRoomCode"></strong> and choose a team name.</p>
+          <div class="join-url" id="joinUrlText"></div>
+        </div>
+        <div class="qr-wrap">
+          <div id="joinQr" class="qr-box" aria-label="Team join QR code"></div>
+          <div class="room-code-big" id="joinRoomBig"></div>
+        </div>
+      </section>
       <div class="host-layout">
         <section class="card question-card">
           <div class="round-line"><span id="roundText">Ready</span><span id="phaseText"></span></div>
@@ -47,6 +59,7 @@
 
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script src="firebase-config.js"></script>
   <script src="questions.js"></script>
   <script src="host.js"></script>

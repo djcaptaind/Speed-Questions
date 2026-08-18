@@ -79,3 +79,44 @@ button { cursor: pointer; }
 
 .adjust { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; }
 .adjust .btn { padding:8px 10px; font-size:.82rem; }
+
+
+/* Game sounds + animations */
+.sound-toggle { position:fixed; right:18px; bottom:18px; z-index:80; border:1px solid rgba(255,255,255,.28); background:rgba(7,26,51,.92); color:#fff; padding:10px 14px; border-radius:999px; font-weight:900; box-shadow:0 8px 28px rgba(0,0,0,.28); cursor:pointer; }
+.fx-pulse { animation:fxPulse .72s ease; }
+.question-enter { animation:questionEnter .46s cubic-bezier(.2,.8,.2,1); }
+.choice { transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease; }
+.choice:not(:disabled):active { transform:scale(.97); }
+.choice.selected { animation:choiceSelect .28s ease; }
+.choice.correct { animation:correctGlow .78s ease; }
+.choice.wrong { animation:wrongShake .46s ease; }
+.score-row, .host-team-row { transition:transform .4s ease, background .4s ease; }
+.score-points.score-up { animation:scoreUp .7s ease; }
+.score-points.score-down { animation:scoreDown .7s ease; }
+.score-float { position:fixed; z-index:100; transform:translate(-50%,0); font-size:clamp(28px,5vw,54px); font-weight:1000; pointer-events:none; text-shadow:0 4px 16px rgba(0,0,0,.25); animation:scoreFloat 1.2s ease-out forwards; }
+.score-float.positive { color:#16a34a; }
+.score-float.negative { color:#dc2626; }
+.confetti-piece { position:fixed; z-index:120; width:10px; height:16px; border-radius:2px; background:var(--orange); pointer-events:none; animation:confettiFly 1.35s ease-out forwards; }
+.confetti-piece:nth-child(3n){ background:var(--blue); }
+.confetti-piece:nth-child(3n+1){ background:#f5b301; }
+.result-correct { animation:resultPop .6s cubic-bezier(.2,.9,.25,1.35); }
+.result-wrong { animation:wrongShake .46s ease; }
+.leaderboard-winner { box-shadow:0 0 0 3px rgba(245,179,1,.35),0 18px 50px rgba(0,0,0,.2); }
+@keyframes fxPulse { 0%{transform:scale(1)} 45%{transform:scale(1.035)} 100%{transform:scale(1)} }
+@keyframes questionEnter { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
+@keyframes choiceSelect { 0%{transform:scale(.96)} 70%{transform:scale(1.025)} 100%{transform:scale(1)} }
+@keyframes correctGlow { 0%{box-shadow:0 0 0 0 rgba(22,163,74,.35)} 55%{box-shadow:0 0 0 12px rgba(22,163,74,0)} 100%{box-shadow:none} }
+@keyframes wrongShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(7px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(3px)} }
+@keyframes scoreUp { 0%{transform:scale(1);color:var(--blue)} 45%{transform:scale(1.35);color:var(--green)} 100%{transform:scale(1);color:var(--blue)} }
+@keyframes scoreDown { 0%{transform:scale(1);color:var(--blue)} 45%{transform:scale(1.35);color:var(--red)} 100%{transform:scale(1);color:var(--blue)} }
+@keyframes scoreFloat { 0%{opacity:0;transform:translate(-50%,14px) scale(.8)} 18%{opacity:1;transform:translate(-50%,0) scale(1.12)} 100%{opacity:0;transform:translate(-50%,-80px) scale(1)} }
+@keyframes confettiFly { 0%{opacity:1;transform:translate(0,0) rotate(0)} 100%{opacity:0;transform:translate(var(--x),var(--y)) rotate(var(--r))} }
+@keyframes resultPop { 0%{transform:scale(.88);opacity:.3} 70%{transform:scale(1.04)} 100%{transform:scale(1);opacity:1} }
+@media (prefers-reduced-motion: reduce){ *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important} }
+
+.join-panel{display:flex;align-items:center;justify-content:space-between;gap:28px;margin:18px 0;padding:24px 28px}
+.join-panel-copy{flex:1;min-width:0}.join-panel-copy h2{margin:4px 0 8px;font-size:clamp(1.5rem,2.6vw,2.3rem)}
+.join-panel-copy p{margin:0 0 12px;line-height:1.5}.join-url{font-size:.8rem;opacity:.72;overflow-wrap:anywhere}
+.qr-wrap{display:flex;align-items:center;gap:18px}.qr-box{background:#fff;padding:10px;border-radius:12px;min-width:200px;min-height:200px;display:flex;align-items:center;justify-content:center}
+.qr-box img,.qr-box canvas{display:block}.room-code-big{font-size:clamp(2rem,5vw,4.4rem);font-weight:900;letter-spacing:.08em}
+@media(max-width:760px){.join-panel{flex-direction:column;text-align:center}.qr-wrap{flex-direction:column}.join-url{font-size:.7rem}}

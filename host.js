@@ -1,6 +1,6 @@
 (() => {
   const $ = id => document.getElementById(id);
-  let db, roomRef, roomCode, state = {}, questionIndex = 0;
+  let db, roomRef, roomCode, state = {}, questionIndex = 0, previousPhase = null, previousIndex = null, previousScores = {};
   const questions = window.GAME_QUESTIONS || [];
   const configured = () => window.FIREBASE_CONFIG && !String(window.FIREBASE_CONFIG.apiKey).startsWith('PASTE_');
   const escapeHtml = (s='') => s.replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]));
@@ -15,6 +15,19 @@
     db = firebase.database(); return true;
   }
 
+  function renderJoinQr() {
+    const joinUrl = new URL('index.html', window.location.href).href;
+    $('joinRoomCode').textContent = roomCode;
+    $('joinRoomBig').textContent = roomCode;
+    $('joinUrlText').textContent = joinUrl;
+    $('joinQr').innerHTML = '';
+    if (window.QRCode) {
+      new QRCode($('joinQr'), { text: joinUrl, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
+    } else {
+      $('joinQr').textContent = 'QR unavailable — use the team link.';
+    }
+  }
+
   $('createBtn').addEventListener('click', async () => {
     $('setupError').textContent='';
     roomCode = $('roomCode').value.trim().toUpperCase();
@@ -24,18 +37,27 @@
     const snap = await roomRef.once('value');
     if (!snap.exists()) await roomRef.set({ createdAt: Date.now(), phase:'waiting', questionIndex:0, teams:{} });
     $('setupView').classList.add('hidden'); $('hostView').classList.remove('hidden'); $('roomLabel').textContent=roomCode;
+    renderJoinQr();
+    GameFX.addSoundToggle(); GameFX.sounds.join();
     listen();
   });
 
   function listen() {
-    roomRef.on('value', snap => { state=snap.val()||{}; questionIndex=state.questionIndex||0; render(); });
+    roomRef.on('value', snap => {
+      const oldPhase=previousPhase, oldIndex=previousIndex;
+      state=snap.val()||{}; questionIndex=state.questionIndex||0; render();
+      if(oldIndex!==null && questionIndex!==oldIndex && state.currentQuestion){ GameFX.sounds.open(); GameFX.pulse($('questionText')); }
+      if(oldPhase && oldPhase!==state.phase && state.phase==='locked') GameFX.sounds.lock();
+      if(oldPhase && oldPhase!==state.phase && state.phase==='revealed') GameFX.sounds.correct();
+      previousPhase=state.phase||'waiting'; previousIndex=questionIndex;
+    });
   }
 
   function render() {
     const q=state.currentQuestion;
     $('roundText').textContent = q ? `Question ${questionIndex+1} of ${questions.length}` : 'Ready';
     $('phaseText').textContent=(state.phase||'waiting').toUpperCase();
-    $('questionText').textContent=q?.question || 'Select Start Question.';
+    $('questionText').textContent=q?.question || 'Select Start Question.'; if(q){ $('questionText').classList.remove('question-enter'); void $('questionText').offsetWidth; $('questionText').classList.add('question-enter'); }
     $('choices').innerHTML=q ? q.choices.map((c,i)=>`<div class="choice host-choice ${state.phase==='revealed'&&i===q.answer?'correct':''}"><span class="choice-letter">${String.fromCharCode(65+i)}</span>${escapeHtml(c)}</div>`).join('') : '';
     $('lockBtn').disabled=state.phase!=='open';
     $('revealBtn').disabled=!['open','locked'].includes(state.phase);
@@ -56,10 +78,11 @@
   function renderScores() {
     const teams=state.teams||{};
     const sorted=Object.entries(teams).sort((a,b)=>(b[1].score||0)-(a[1].score||0));
-    $('scoreboard').innerHTML=sorted.map(([id,t],idx)=>`<div class="host-team-row"><div><strong>${idx+1}. ${escapeHtml(t.name||id)}</strong><div class="small">${t.score||0} points</div></div><div class="adjust"><button class="btn btn-ghost" data-id="${id}" data-delta="-50">−50</button><button class="btn btn-primary" data-id="${id}" data-delta="50">+50</button><button class="btn btn-ghost" data-rename="${id}">Rename</button><button class="btn btn-danger" data-remove="${id}">Remove</button></div></div>`).join('') || '<p class="small">No teams yet.</p>';
+    $('scoreboard').innerHTML=sorted.map(([id,t],idx)=>{ const delta=(t.score||0)-(previousScores[id]??(t.score||0)); return `<div class="host-team-row ${idx===0&&state.phase==='revealed'?'leaderboard-winner':''}"><div><strong>${idx+1}. ${escapeHtml(t.name||id)}</strong><div class="small ${delta>0?'score-up':delta<0?'score-down':''}">${t.score||0} points</div></div><div class="adjust"><button class="btn btn-ghost" data-id="${id}" data-delta="-50">−50</button><button class="btn btn-primary" data-id="${id}" data-delta="50">+50</button><button class="btn btn-ghost" data-rename="${id}">Rename</button><button class="btn btn-danger" data-remove="${id}">Remove</button></div></div>`; }).join('') || '<p class="small">No teams yet.</p>';
     document.querySelectorAll('[data-delta]').forEach(b=>b.addEventListener('click',()=>adjustScore(b.dataset.id,Number(b.dataset.delta))));
     document.querySelectorAll('[data-rename]').forEach(b=>b.addEventListener('click',()=>renameTeam(b.dataset.rename)));
     document.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',()=>removeTeam(b.dataset.remove)));
+    previousScores=Object.fromEntries(Object.entries(teams).map(([id,t])=>[id,t.score||0]));
   }
 
   async function loadQuestion(index, phase='open') {
@@ -67,7 +90,10 @@
     const q=questions[index];
     await roomRef.update({ questionIndex:index, currentQuestion:q, phase, answers:null, scored:false });
   }
-  $('startBtn').addEventListener('click',()=>loadQuestion(questionIndex,'open'));
+  $('startBtn').addEventListener('click',async()=>{
+    await loadQuestion(questionIndex,'open');
+    $('joinPanel').classList.add('hidden');
+  });
   $('lockBtn').addEventListener('click',()=>roomRef.child('phase').set('locked'));
   $('nextBtn').addEventListener('click',async()=>{
     const next=questionIndex+1;
@@ -87,6 +113,7 @@
       updates[`teams/${id}/score`] = (t.score||0) + delta;
     });
     await roomRef.update(updates);
+    const leaders=Object.entries(updates).filter(([k])=>k.endsWith('/score')); if(leaders.length) setTimeout(()=>GameFX.burst(document.querySelector('.leaderboard'),30),180);
   }
 
   async function renameTeam(id) {
@@ -134,5 +161,8 @@
     const teams=state.teams||{}, updates={ phase:'waiting', questionIndex:0, currentQuestion:null, answers:null, scored:false, message:'New game ready.' };
     Object.keys(teams).forEach(id=>updates[`teams/${id}/score`]=0);
     await roomRef.update(updates);
+    $('joinPanel').classList.remove('hidden');
+    renderJoinQr();
   });
+  GameFX.addSoundToggle();
 })();

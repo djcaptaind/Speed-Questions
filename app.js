@@ -1,6 +1,6 @@
 (() => {
   const $ = id => document.getElementById(id);
-  let db, roomRef, roomCode, teamId, teamName, currentState = null, selected = null;
+  let db, roomRef, roomCode, teamId, teamName, currentState = null, selected = null, previousPhase = null, previousQuestionIndex = null, previousMyScore = null;
 
   function configured() {
     return window.FIREBASE_CONFIG && !String(window.FIREBASE_CONFIG.apiKey).startsWith('PASTE_');
@@ -47,14 +47,27 @@
     localStorage.setItem('answerGameTeam', teamName);
     $('joinView').classList.add('hidden'); $('gameView').classList.remove('hidden');
     $('teamLabel').textContent = teamName; $('roomLabel').textContent = roomCode;
+    GameFX.addSoundToggle(); GameFX.sounds.join();
     listen();
   });
 
   function listen() {
     roomRef.on('value', snap => {
-      currentState = snap.val() || {};
+      const nextState = snap.val() || {};
+      const oldPhase = previousPhase; const oldIndex = previousQuestionIndex;
+      currentState = nextState;
       renderQuestion(currentState);
       renderScores(currentState.teams || {});
+      if (oldIndex !== null && currentState.questionIndex !== oldIndex && currentState.currentQuestion) { GameFX.sounds.open(); GameFX.pulse($('questionText')); }
+      if (oldPhase && oldPhase !== currentState.phase && currentState.phase === 'locked') GameFX.sounds.lock();
+      if (oldPhase && oldPhase !== currentState.phase && currentState.phase === 'revealed') {
+        const a=currentState.answers?.[teamId]?.choice, q=currentState.currentQuestion;
+        if (a !== undefined && q) {
+          const ok=a===q.answer; GameFX.sounds[ok?'correct':'wrong'](); GameFX.pulse($('statusMessage'), ok?'result-correct':'result-wrong');
+          GameFX.floatScore(ok?`+${q.points||100}`:'−50', ok, $('statusMessage')); if(ok) GameFX.burst($('statusMessage'),22);
+        }
+      }
+      previousPhase=currentState.phase||'waiting'; previousQuestionIndex=currentState.questionIndex ?? null;
     });
   }
 
@@ -68,7 +81,7 @@
       $('statusMessage').textContent = 'Ready.'; selected = null; return;
     }
     $('roundText').textContent = `Question ${(state.questionIndex ?? 0) + 1}`;
-    $('questionText').textContent = q.question;
+    $('questionText').textContent = q.question; $('questionText').classList.remove('question-enter'); void $('questionText').offsetWidth; $('questionText').classList.add('question-enter');
     $('answerState').textContent = phase === 'open' ? 'ANSWER NOW' : phase === 'locked' ? 'LOCKED' : phase === 'revealed' ? 'ANSWER REVEALED' : '';
     const myAnswer = state.answers?.[teamId]?.choice;
     if (myAnswer !== undefined) selected = myAnswer;
@@ -96,12 +109,16 @@
   }
 
   function renderScores(teams) {
+    const myScore = teams?.[teamId]?.score ?? 0;
+    const scoreDelta = previousMyScore === null ? 0 : myScore - previousMyScore;
     const sorted = Object.entries(teams).sort((a,b) => (b[1].score||0)-(a[1].score||0) || (a[1].name||'').localeCompare(b[1].name||''));
-    $('scoreboard').innerHTML = sorted.map(([id,t], idx) => `<div class="score-row ${id===teamId?'my-team':''}"><div class="rank">${idx+1}</div><div class="score-name">${escapeHtml(t.name||id)}</div><div class="score-points">${t.score||0}</div></div>`).join('') || '<p class="small">No teams yet.</p>';
+    $('scoreboard').innerHTML = sorted.map(([id,t], idx) => `<div class="score-row ${id===teamId?'my-team':''}"><div class="rank">${idx+1}</div><div class="score-name">${escapeHtml(t.name||id)}</div><div class="score-points ${id===teamId&&scoreDelta>0?'score-up':id===teamId&&scoreDelta<0?'score-down':''}">${t.score||0}</div></div>`).join('') || '<p class="small">No teams yet.</p>';
+    previousMyScore = myScore;
   }
 
   const savedRoom = localStorage.getItem('answerGameRoom');
   const savedTeam = localStorage.getItem('answerGameTeam');
   if (savedRoom) $('roomCode').value = savedRoom;
   if (savedTeam) $('teamName').value = savedTeam;
+  GameFX.addSoundToggle();
 })();
