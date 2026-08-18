@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JROTC Team Answer Game</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <section id="joinView" class="card join-card">
+      <div class="kicker">Callaway JROTC</div>
+      <h1>Team Answer Game</h1>
+      <p>Join your class game. Every team sees the same question and the live scoreboard.</p>
+      <label class="label" for="roomCode">Room code</label>
+      <input id="roomCode" class="input" maxlength="8" placeholder="Example: ALPHA1" autocomplete="off" />
+      <label class="label" for="teamName">Team name</label>
+      <input id="teamName" class="input" maxlength="20" placeholder="Example: Team Chargers" autocomplete="off" />
+      <div class="footer-links">
+        <button id="joinBtn" class="btn btn-primary">Join Game</button>
+        <a class="btn btn-ghost" href="host.html" style="text-decoration:none">Instructor / Host</a>
+      </div>
+      <p id="joinError" class="small"></p>
+    </section>
+
+    <section id="gameView" class="hidden">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-badge">JROTC</div>
+          <div><h1>Team Answer Game</h1><p id="teamLabel"></p></div>
+        </div>
+        <div class="room-pill">Room: <span id="roomLabel"></span></div>
+      </header>
+
+      <div class="grid">
+        <section class="card question-card">
+          <div class="round-line"><span id="roundText">Waiting for host...</span><span id="answerState"></span></div>
+          <h2 id="questionText" class="question">The instructor will start the first question.</h2>
+          <div id="choices" class="choices"></div>
+          <div class="status-box"><div id="statusMessage" class="status-message">Ready.</div></div>
+        </section>
+        <aside class="card leaderboard">
+          <h2>Live Scoreboard</h2>
+          <div id="scoreboard"></div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

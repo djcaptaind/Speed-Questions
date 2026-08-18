@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Host | JROTC Team Answer Game</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <section id="setupView" class="card join-card">
+      <div class="kicker">Instructor Control</div>
+      <h1>Start a Team Answer Game</h1>
+      <p>Create a room code. Students open the main game link and join with their team name.</p>
+      <label class="label" for="roomCode">Room code</label>
+      <input id="roomCode" class="input" maxlength="8" placeholder="Example: ALPHA1" />
+      <div class="footer-links"><button id="createBtn" class="btn btn-primary">Create / Open Room</button><a class="btn btn-ghost" href="index.html" style="text-decoration:none">Team Screen</a></div>
+      <p id="setupError" class="small"></p>
+    </section>
+
+    <section id="hostView" class="hidden">
+      <header class="topbar">
+        <div class="brand"><div class="brand-badge">HOST</div><div><h1>Instructor Control</h1><p>Live classroom game manager</p></div></div>
+        <div class="room-pill">Room: <span id="roomLabel"></span></div>
+      </header>
+      <div class="host-layout">
+        <section class="card question-card">
+          <div class="round-line"><span id="roundText">Ready</span><span id="phaseText"></span></div>
+          <h2 id="questionText" class="question">Select Start Question.</h2>
+          <div id="choices" class="choices"></div>
+          <div class="controls">
+            <button id="startBtn" class="btn btn-blue">Start Question</button>
+            <button id="lockBtn" class="btn btn-ghost">Lock Answers</button>
+            <button id="revealBtn" class="btn btn-primary">Reveal + Score</button>
+            <button id="nextBtn" class="btn btn-blue">Next Question</button>
+            <button id="resetBtn" class="btn btn-danger">Reset Game</button>
+          </div>
+          <div class="submissions"><h3>Team Answers</h3><div id="submissions"></div></div>
+        </section>
+        <aside class="card leaderboard">
+          <h2>Scores & Adjustments</h2>
+          <div id="scoreboard"></div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="questions.js"></script>
+  <script src="host.js"></script>
+</body>
+</html>
