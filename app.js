@@ -9,7 +9,7 @@
   function normalizeName(s='') { return s.trim().replace(/\s+/g,' '); }
   function nameKey(s='') { return normalizeName(s).toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,40); }
   function inappropriateName(s='') { const x = normalizeName(s).toLowerCase().replace(/[^a-z0-9]/g,''); return BLOCKED_WORDS.some(w => x.includes(w)); }
-  function escapeHtml(s='') { return s.replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c])); }
+  function escapeHtml(s='') { return String(s).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c])); }
   function initFirebase() {
     if (!configured()) return false;
     if (!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
@@ -24,7 +24,7 @@
     if (!roomCode || !teamName) return $('joinError').textContent = 'Enter a room code and team name.';
     if (teamName.length > 20) return $('joinError').textContent = 'Team names can be no more than 20 characters.';
     if (inappropriateName(teamName)) return $('joinError').textContent = 'Choose a different team name.';
-    if (!initFirebase()) return $('joinError').innerHTML = 'Firebase is not configured yet. The instructor needs to complete <span class="code">firebase-config.js</span>.';
+    if (!initFirebase()) return $('joinError').innerHTML = 'Firebase is not configured yet.';
     roomRef = db.ref('rooms/' + roomCode);
     const snap = await roomRef.once('value');
     if (!snap.exists()) return $('joinError').textContent = 'That room is not open yet. Ask the instructor to create it first.';
@@ -56,63 +56,132 @@
       const nextState = snap.val() || {};
       const oldPhase = previousPhase; const oldIndex = previousQuestionIndex;
       currentState = nextState;
+
+      // Reset local selection when a new question begins.
+      if (oldIndex !== null && currentState.questionIndex !== oldIndex) selected = null;
+
       renderQuestion(currentState);
       renderScores(currentState.teams || {});
-      if (oldIndex !== null && currentState.questionIndex !== oldIndex && currentState.currentQuestion) { GameFX.sounds.open(); GameFX.pulse($('questionText')); }
+
+      if (oldIndex !== null && currentState.questionIndex !== oldIndex && currentState.currentQuestion) {
+        GameFX.sounds.open(); GameFX.pulse($('questionText'));
+      }
       if (oldPhase && oldPhase !== currentState.phase && currentState.phase === 'locked') GameFX.sounds.lock();
       if (oldPhase && oldPhase !== currentState.phase && currentState.phase === 'revealed') {
-        const a=currentState.answers?.[teamId]?.choice, q=currentState.currentQuestion;
+        const a = currentState.answers?.[teamId]?.choice, q = currentState.currentQuestion;
         if (a !== undefined && q) {
-          const ok=a===q.answer; GameFX.sounds[ok?'correct':'wrong'](); GameFX.pulse($('statusMessage'), ok?'result-correct':'result-wrong');
-          GameFX.floatScore(ok?`+${q.points||100}`:'−50', ok, $('statusMessage')); if(ok) GameFX.burst($('statusMessage'),22);
+          const ok = a === q.answer;
+          GameFX.sounds[ok ? 'correct' : 'wrong']();
+          GameFX.pulse($('statusMessage'), ok ? 'result-correct' : 'result-wrong');
+          GameFX.floatScore(ok ? `+${q.points || 100}` : '−50', ok, $('statusMessage'));
+          if (ok) GameFX.burst($('statusMessage'), 22);
         }
       }
-      previousPhase=currentState.phase||'waiting'; previousQuestionIndex=currentState.questionIndex ?? null;
+      previousPhase = currentState.phase || 'waiting';
+      previousQuestionIndex = currentState.questionIndex ?? null;
     });
   }
 
   function renderQuestion(state) {
     const q = state.currentQuestion;
     const phase = state.phase || 'waiting';
+
     if (!q) {
       $('roundText').textContent = 'Waiting for host...';
       $('questionText').textContent = state.message || 'The instructor will start the first question.';
-      $('choices').innerHTML = ''; $('answerState').textContent = '';
-      $('statusMessage').textContent = 'Ready.'; selected = null; return;
+      $('choices').innerHTML = '';
+      $('answerState').textContent = '';
+      $('statusMessage').textContent = 'Ready.';
+      selected = null;
+      return;
     }
+
     $('roundText').textContent = `Question ${(state.questionIndex ?? 0) + 1}`;
-    $('questionText').textContent = q.question; $('questionText').classList.remove('question-enter'); void $('questionText').offsetWidth; $('questionText').classList.add('question-enter');
-    $('answerState').textContent = phase === 'open' ? 'ANSWER NOW' : phase === 'locked' ? 'LOCKED' : phase === 'revealed' ? 'ANSWER REVEALED' : '';
+    $('questionText').textContent = q.question;
+    $('questionText').classList.remove('question-enter');
+    void $('questionText').offsetWidth;
+    $('questionText').classList.add('question-enter');
+
+    $('answerState').textContent =
+      phase === 'open' ? 'ANSWER NOW — CHANGES ALLOWED' :
+      phase === 'locked' ? 'LOCKED — FINAL ANSWER' :
+      phase === 'revealed' ? 'ANSWER REVEALED' : '';
+
     const myAnswer = state.answers?.[teamId]?.choice;
     if (myAnswer !== undefined) selected = myAnswer;
+
     $('choices').innerHTML = q.choices.map((choice, i) => {
       let cls = 'choice';
       if (selected === i) cls += ' selected';
       if (phase === 'revealed') cls += i === q.answer ? ' correct' : (selected === i ? ' wrong' : '');
-      return `<button class="${cls}" data-choice="${i}" ${phase !== 'open' || myAnswer !== undefined ? 'disabled' : ''}><span class="choice-letter">${String.fromCharCode(65+i)}</span>${escapeHtml(choice)}</button>`;
+
+      // IMPORTANT: while OPEN, choices remain enabled even after an answer is submitted.
+      return `<button class="${cls}" data-choice="${i}" ${phase !== 'open' ? 'disabled' : ''}>
+        <span class="choice-letter">${String.fromCharCode(65+i)}</span>${escapeHtml(choice)}
+      </button>`;
     }).join('');
-    document.querySelectorAll('[data-choice]').forEach(btn => btn.addEventListener('click', () => submitAnswer(Number(btn.dataset.choice))));
-    if (phase === 'open') $('statusMessage').textContent = myAnswer !== undefined ? 'Answer submitted. Waiting for the host.' : 'Choose one answer. You only get one submission.';
-    if (phase === 'locked') $('statusMessage').textContent = 'Answers are locked. Waiting for the correct answer.';
+
+    document.querySelectorAll('[data-choice]').forEach(btn =>
+      btn.addEventListener('click', () => submitOrChangeAnswer(Number(btn.dataset.choice)))
+    );
+
+    if (phase === 'open') {
+      $('statusMessage').textContent =
+        myAnswer !== undefined
+          ? `Selected ${String.fromCharCode(65 + myAnswer)}. You may change your answer until the instructor locks answers.`
+          : 'Choose an answer. You may change it until the instructor locks answers.';
+    }
+    if (phase === 'locked') {
+      $('statusMessage').textContent =
+        myAnswer !== undefined
+          ? `Final answer locked: ${String.fromCharCode(65 + myAnswer)}.`
+          : 'Answers are locked. No answer was submitted.';
+    }
     if (phase === 'revealed') {
       const isCorrect = myAnswer === q.answer;
-      $('statusMessage').textContent = myAnswer === undefined ? `Correct answer: ${String.fromCharCode(65+q.answer)}.` : (isCorrect ? `Correct! +${q.points || 100} points.` : `Incorrect. −50 points. Correct answer: ${String.fromCharCode(65+q.answer)}.`);
+      $('statusMessage').textContent =
+        myAnswer === undefined
+          ? `No answer submitted. Correct answer: ${String.fromCharCode(65+q.answer)}.`
+          : isCorrect
+            ? `Correct! +${q.points || 100} points.`
+            : `Incorrect. −50 points. Correct answer: ${String.fromCharCode(65+q.answer)}.`;
     }
   }
 
-  async function submitAnswer(choice) {
+  async function submitOrChangeAnswer(choice) {
+    // Only allow changes while the instructor has answers OPEN.
     if (!currentState || currentState.phase !== 'open') return;
+
     selected = choice;
     const answerRef = roomRef.child('answers/' + teamId);
-    const result = await answerRef.transaction(existing => existing || ({ choice, submittedAt: Date.now(), teamName }));
-    if (!result.committed) selected = result.snapshot.val()?.choice;
+
+    // Replace the previous answer with the newest choice.
+    await answerRef.set({
+      choice,
+      submittedAt: Date.now(),
+      teamName
+    });
+
+    // Immediate local feedback while Firebase syncs.
+    $('statusMessage').textContent =
+      `Selected ${String.fromCharCode(65 + choice)}. You may change your answer until the instructor locks answers.`;
   }
 
   function renderScores(teams) {
     const myScore = teams?.[teamId]?.score ?? 0;
     const scoreDelta = previousMyScore === null ? 0 : myScore - previousMyScore;
-    const sorted = Object.entries(teams).sort((a,b) => (b[1].score||0)-(a[1].score||0) || (a[1].name||'').localeCompare(b[1].name||''));
-    $('scoreboard').innerHTML = sorted.map(([id,t], idx) => `<div class="score-row ${id===teamId?'my-team':''}"><div class="rank">${idx+1}</div><div class="score-name">${escapeHtml(t.name||id)}</div><div class="score-points ${id===teamId&&scoreDelta>0?'score-up':id===teamId&&scoreDelta<0?'score-down':''}">${t.score||0}</div></div>`).join('') || '<p class="small">No teams yet.</p>';
+    const sorted = Object.entries(teams).sort((a,b) =>
+      (b[1].score||0)-(a[1].score||0) || (a[1].name||'').localeCompare(b[1].name||'')
+    );
+
+    $('scoreboard').innerHTML = sorted.map(([id,t], idx) =>
+      `<div class="score-row ${id===teamId?'my-team':''}">
+        <div class="rank">${idx+1}</div>
+        <div class="score-name">${escapeHtml(t.name||id)}</div>
+        <div class="score-points ${id===teamId&&scoreDelta>0?'score-up':id===teamId&&scoreDelta<0?'score-down':''}">${t.score||0}</div>
+      </div>`
+    ).join('') || '<p class="small">No teams yet.</p>';
+
     previousMyScore = myScore;
   }
 
