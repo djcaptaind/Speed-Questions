@@ -1,55 +1,38 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Host | Callaway JROTC Team Answer Game</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body class="host-page">
-<main class="shell host-shell">
-<section id="setupView" class="setup-stage">
-  <section class="join-card game-panel">
-    <div class="callaway-mark"><span class="mark-c">C</span><span><b>CALLAWAY</b><small>JROTC</small></span></div>
-    <div class="kicker">Instructor Control</div><h1>Start a Team Answer Game</h1>
-    <p>Create a room code, then let teams scan the QR code and join from their devices.</p>
-    <label class="label" for="roomCode">Game Room</label>
-    <input id="roomCode" class="input" maxlength="8" placeholder="Example: EAGLES24" />
-    <div class="footer-links"><button id="createBtn" class="btn btn-primary">Create / Open Room</button><a class="btn btn-ghost" href="index.html">Team Screen</a></div>
-    <p id="setupError" class="small"></p>
-  </section>
-</section>
-<section id="hostView" class="hidden">
-<header class="game-header">
-  <div class="callaway-mark large"><span class="mark-c">C</span><span><b>CALLAWAY</b><small>JROTC</small></span></div>
-  <div class="header-center"><div class="eyebrow">INSTRUCTOR / HOST COMPUTER</div><h1>TEAM ANSWER GAME</h1></div>
-  <div class="header-status"><span class="status-dot"></span><span id="connectedCount">0 Teams Connected</span></div>
-</header>
-<div class="host-dashboard">
-<aside class="game-panel host-sidebar">
-  <div class="side-title">GAME ROOM</div><div class="room-code-compact" id="roomLabel"></div>
-  <div id="joinPanel" class="join-mini"><div class="qr-box" id="joinQr"></div><div class="join-instruction">SCAN TO JOIN</div><div class="mini-url" id="joinUrlText"></div><div class="join-room-line">Room Code <strong id="joinRoomCode"></strong></div><div id="joinRoomBig" class="sr-only"></div></div>
-  <div class="sidebar-controls">
-    <button id="startBtn" class="btn btn-primary btn-block">Start Question</button>
-    <button id="lockBtn" class="btn btn-blue btn-block">Lock Answers</button>
-    <button id="revealBtn" class="btn btn-blue btn-block">Reveal & Score</button>
-    <button id="nextBtn" class="btn btn-primary btn-block">Next Question</button>
-    <button id="resetBtn" class="btn btn-danger btn-block">Reset Game</button>
-  </div>
-  <div class="scoring-key"><div><span class="score-good">+100</span><small>Correct</small></div><div><span class="score-bad">−50</span><small>Wrong</small></div><div><span>0</span><small>No Answer</small></div></div>
-</aside>
-<section class="game-panel host-main">
-  <div class="round-line"><span id="roundText">Ready</span><span class="phase-badge" id="phaseText">WAITING</span></div>
-  <h2 id="questionText" class="question">Select Start Question.</h2><div id="choices" class="choices"></div>
-  <div class="answer-summary-panel"><div class="summary-heading"><span>ANSWER SUMMARY</span><small>Live</small></div><div id="submissions" class="answer-summary-grid"></div></div>
-  <div class="bottom-info-strip"><div class="info-cell"><span class="info-label">CORRECT ANSWER</span><div id="correctAnswerDisplay">Hidden until reveal</div></div><div class="info-cell"><span class="info-label">SCORING (AUTOMATIC)</span><div><b class="score-good">Correct: +100</b> &nbsp; <b class="score-bad">Wrong: −50</b> &nbsp; No Answer: 0</div></div></div>
-</section>
-<aside class="game-panel leaderboard host-leaderboard"><div class="leaderboard-header"><h2>LEADERBOARD</h2><span>LIVE</span></div><div id="scoreboard"></div></aside>
-</div>
-</section>
-</main>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-<script src="firebase-config.js"></script><script src="questions.js"></script><script src="effects.js"></script><script src="host.js"></script>
-</body></html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Host | Callaway JROTC Team Answer Game</title><link rel="stylesheet" href="styles.css"/></head>
+<body class="host-page"><main class="shell host-shell">
+<section id="setupView" class="setup-stage"><section class="join-card game-panel">
+<div class="callaway-mark"><span class="mark-c">C</span><span><b>CALLAWAY</b><small>JROTC</small></span></div>
+<div class="kicker">Instructor Control</div><h1>Start a Team Answer Game</h1>
+<p>Create a room code, manage your question bank, then let teams scan the QR code and join.</p>
+<label class="label" for="roomCode">Game Room</label><input id="roomCode" class="input" maxlength="8" placeholder="Example: EAGLES24"/>
+<div class="footer-links"><button id="createBtn" class="btn btn-primary">Create / Open Room</button><button id="manageQuestionsBtn" class="btn btn-blue">Manage Questions</button><a class="btn btn-ghost" href="index.html">Team Screen</a></div>
+<p id="setupError" class="small"></p></section></section>
+<section id="hostView" class="hidden"><header class="game-header">
+<div class="callaway-mark large"><span class="mark-c">C</span><span><b>CALLAWAY</b><small>JROTC</small></span></div>
+<div class="header-center"><div class="eyebrow">INSTRUCTOR / HOST COMPUTER</div><h1>TEAM ANSWER GAME</h1></div>
+<div class="header-status"><span class="status-dot"></span><span id="connectedCount">0 Teams Connected</span></div></header>
+<div class="host-dashboard"><aside class="game-panel host-sidebar">
+<div class="side-title">GAME ROOM</div><div class="room-code-compact" id="roomLabel"></div>
+<div id="joinPanel" class="join-mini"><div class="qr-box" id="joinQr"></div><div class="join-instruction">SCAN TO JOIN</div><div class="mini-url" id="joinUrlText"></div><div class="join-room-line">Room Code <strong id="joinRoomCode"></strong></div><div id="joinRoomBig" class="sr-only"></div></div>
+<div class="sidebar-controls"><button id="startBtn" class="btn btn-primary btn-block">Start Question</button><button id="lockBtn" class="btn btn-blue btn-block">Lock Answers</button><button id="revealBtn" class="btn btn-blue btn-block">Reveal & Score</button><button id="nextBtn" class="btn btn-primary btn-block">Next Question</button><button id="resetBtn" class="btn btn-danger btn-block">Reset Game</button><button id="manageQuestionsBtnGame" class="btn btn-ghost btn-block" onclick="document.getElementById('questionManager').classList.remove('hidden')">Manage Questions</button></div>
+<div class="scoring-key"><div><span class="score-good">+100</span><small>Correct</small></div><div><span class="score-bad">−50</span><small>Wrong</small></div><div><span>0</span><small>No Answer</small></div></div></aside>
+<section class="game-panel host-main"><div class="round-line"><span id="roundText">Ready</span><span class="phase-badge" id="phaseText">WAITING</span></div>
+<h2 id="questionText" class="question">Select Start Question.</h2><div id="choices" class="choices"></div>
+<div class="answer-summary-panel"><div class="summary-heading"><span>ANSWER SUMMARY</span><small>Live</small></div><div id="submissions" class="answer-summary-grid"></div></div>
+<div class="bottom-info-strip"><div class="info-cell"><span class="info-label">CORRECT ANSWER</span><div id="correctAnswerDisplay">Hidden until reveal</div></div><div class="info-cell"><span class="info-label">SCORING (AUTOMATIC)</span><div><b class="score-good">Correct: +100</b> &nbsp; <b class="score-bad">Wrong: −50</b> &nbsp; No Answer: 0</div></div></div></section>
+<aside class="game-panel leaderboard host-leaderboard"><div class="leaderboard-header"><h2>LEADERBOARD</h2><span>LIVE</span></div><div id="scoreboard"></div></aside></div></section></main>
+
+<div id="questionManager" class="qm-overlay hidden"><section class="qm-modal game-panel">
+<div class="qm-head"><div><div class="kicker">Instructor Tool</div><h2>Question Manager</h2><p>Create, edit, reorder, import, and export your game questions.</p></div><button id="qmClose" class="qm-x">×</button></div>
+<div class="qm-toolbar"><span id="qmCount" class="qm-count">0 Questions</span><button id="qmAdd" class="btn btn-primary">+ Add Question</button><button id="qmImportBtn" class="btn btn-blue">Import</button><button id="qmExport" class="btn btn-ghost">Export</button><button id="qmReset" class="btn btn-danger">Restore Originals</button><input id="qmImportFile" type="file" accept=".json,application/json" hidden></div>
+<div id="qmStatus" class="qm-status">Questions save automatically on this instructor computer.</div><div id="qmList" class="qm-list"></div>
+<div id="qmEditor" class="qm-editor hidden"><div class="qm-editor-card"><h3 id="qmEditorTitle">Add Question</h3>
+<label class="label">Question</label><textarea id="qmQuestion" class="input qm-textarea" placeholder="Type the question"></textarea>
+<div class="qm-choice-grid"><label>A<input id="qmChoiceA" class="input" placeholder="Answer A"></label><label>B<input id="qmChoiceB" class="input" placeholder="Answer B"></label><label>C<input id="qmChoiceC" class="input" placeholder="Answer C"></label><label>D<input id="qmChoiceD" class="input" placeholder="Answer D"></label></div>
+<div class="qm-settings"><label>Correct Answer<select id="qmAnswer" class="input"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select></label><label>Points<input id="qmPoints" class="input" type="number" min="0" value="100"></label></div>
+<div class="footer-links"><button id="qmSave" class="btn btn-primary">Save Question</button><button id="qmCancel" class="btn btn-ghost">Cancel</button></div></div></div></section></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script><script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="firebase-config.js"></script><script src="questions.js"></script><script src="question-manager.js"></script><script src="effects.js"></script><script src="host.js"></script></body></html>
