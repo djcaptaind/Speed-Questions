@@ -18,7 +18,9 @@
   }
 
   function renderJoinQr() {
-    const joinUrl = new URL('index.html', window.location.href).href;
+    const join = new URL('index.html', window.location.href);
+    join.searchParams.set('room', roomCode);
+    const joinUrl = join.href;
     $('joinRoomCode').textContent = roomCode;
     $('joinUrlText').textContent = joinUrl;
     $('joinQr').innerHTML = '';
@@ -77,8 +79,17 @@
     const q = state.currentQuestion;
     const teams = state.teams || {};
     const count = Object.keys(teams).length;
+    document.body.dataset.phase = state.phase || 'waiting';
 
     $('connectedCount').textContent = `${count} Team${count === 1 ? '' : 's'} Connected`;
+
+    const eligible = state.eligibleTeams || {};
+    const eligibleIds = Object.keys(eligible).filter(id => eligible[id] && teams[id]);
+    const answerCount = eligibleIds.filter(id => state.answers && state.answers[id]).length;
+    const totalEligible = eligibleIds.length;
+    if ($('submissionCount')) $('submissionCount').textContent = answerCount;
+    if ($('submissionTotal')) $('submissionTotal').textContent = totalEligible;
+    if ($('submissionBar')) $('submissionBar').style.width = totalEligible ? `${Math.round((answerCount/totalEligible)*100)}%` : '0%';
     $('roundText').textContent = q ? `Question ${questionIndex + 1} of ${getQuestions().length}` : 'Ready';
     $('phaseText').textContent = (state.phase || 'waiting').toUpperCase();
     $('questionText').textContent = q?.question || 'Select Start Question.';
@@ -121,7 +132,8 @@
         else if (eligible) result = ' -50';
         else result = '';
       }
-      return `<div class="submission-row"><strong>${esc(t.name || id)}</strong><span>${display}${result}</span></div>`;
+      const stateClass = state.phase === 'revealed' ? (a ? (a.choice === q?.answer ? 'submission-correct' : 'submission-wrong') : (eligible ? 'submission-missed' : '')) : (a ? 'submission-ready' : '');
+      return `<div class="submission-row ${stateClass}"><strong>${esc(t.name || id)}</strong><span>${display}${result}</span></div>`;
     }).join('') || '<div class="submission-row"><strong>Waiting for teams...</strong><span>—</span></div>';
   }
 
@@ -131,11 +143,12 @@
     $('scoreboard').innerHTML = sorted.map(([id,t],idx) => {
       const score = t.score || 0;
       const delta = score - (previousScores[id] ?? score);
-      const sc = score > 0 ? 'score-good' : score < 0 ? 'score-bad' : '';
-      return `<div class="host-team-row ${idx===0 && state.phase==='revealed' ? 'leaderboard-winner' : ''}">
-        <div>
-          <strong>${idx+1}. ${esc(t.name || id)}</strong>
-          <div class="small ${delta>0 ? 'score-up' : delta<0 ? 'score-down' : ''} ${sc}">${score} points</div>
+      const medal = idx === 0 ? '⚡' : idx === 1 ? '2' : idx === 2 ? '3' : String(idx + 1);
+      return `<div class="host-team-row rank-${idx+1}">
+        <div class="leader-main">
+          <span class="rank-badge">${medal}</span>
+          <div class="leader-copy"><strong>${esc(t.name || id)}</strong><span class="leader-delta ${delta>0?'score-up':delta<0?'score-down':''}">${delta>0?`+${delta}`:delta<0?`${delta}`:'LIVE SCORE'}</span></div>
+          <span class="leader-score ${score>0?'score-good':score<0?'score-bad':''}">${score}</span>
         </div>
         <div class="adjust">
           <button class="btn btn-ghost" data-id="${id}" data-delta="-50">-50</button>
@@ -201,7 +214,7 @@
     });
 
     await roomRef.update(updates);
-    if (Object.keys(eligibleTeams).length) setTimeout(() => GameFX.burst(document.querySelector('.host-leaderboard'), 28), 180);
+    if (Object.keys(eligibleTeams).length) setTimeout(() => GameFX.burst(document.querySelector('.stadium-leaderboard'), 28), 180);
   }
 
   async function renameTeam(id) {

@@ -3,23 +3,31 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Host | Chargers Challenge</title>
+  <title>Host | Chargers Challenge Stadium Edition</title>
   <link rel="stylesheet" href="styles.css"/>
 </head>
-<body class="host-page">
+<body class="host-page" data-phase="waiting">
+<div class="ambient-orb orb-one"></div><div class="ambient-orb orb-two"></div><div class="scan-grid"></div>
 <main class="app-shell">
   <section id="setupView" class="setup-stage">
-    <section class="setup-cinematic">
-      <div class="setup-logo-wrap"><img src="callaway-chargers-logo.png" class="setup-logo" alt="Callaway Chargers JROTC"></div>
+    <section class="setup-cinematic ultra-setup">
+      <div class="setup-logo-wrap">
+        <div class="logo-halo"></div>
+        <img src="callaway-chargers-logo.png" class="setup-logo" alt="Callaway Chargers JROTC">
+        <div class="setup-broadcast-tag"><span></span> CALLAWAY LIVE</div>
+      </div>
       <div class="setup-copy">
-        <div class="orange-kicker">CALLAWAY JROTC PRESENTS</div>
+        <div class="orange-kicker">CALLAWAY JROTC • LIVE CLASSROOM COMPETITION</div>
         <h1>CHARGERS<br><span>CHALLENGE</span></h1>
-        <p class="setup-sub">Live Team Answer Game</p>
+        <p class="setup-sub">Stadium Broadcast Edition</p>
         <div class="setup-rule"></div>
+        <div class="setup-score-preview">
+          <div><strong>+100</strong><span>CORRECT</span></div><div><strong>-50</strong><span>WRONG</span></div><div><strong>-50</strong><span>NO ANSWER</span></div>
+        </div>
         <label class="label" for="roomCode">GAME ROOM</label>
-        <input id="roomCode" class="input cinematic-input" maxlength="8" placeholder="Example: EAGLES24"/>
+        <input id="roomCode" class="input cinematic-input" maxlength="8" placeholder="Example: CHARGE"/>
         <div class="setup-actions">
-          <button id="createBtn" class="btn btn-primary">Launch Game Room</button>
+          <button id="createBtn" class="btn btn-primary launch-btn">⚡ Launch Game Room</button>
           <button id="manageQuestionsBtn" class="btn btn-blue">Question Manager</button>
           <a class="btn btn-ghost" href="index.html">Team Screen</a>
         </div>
@@ -29,43 +37,44 @@
   </section>
 
   <section id="hostView" class="hidden game-stage">
-    <header class="broadcast-header">
+    <header class="broadcast-header mega-header">
+      <div class="header-energy"></div>
       <div class="brand-block">
-        <img src="callaway-chargers-logo.png" class="brand-logo" alt="Callaway Chargers JROTC">
+        <div class="brand-logo-shell"><img src="callaway-chargers-logo.png" class="brand-logo" alt="Callaway Chargers JROTC"></div>
         <div>
-          <div class="orange-kicker">CALLAWAY JROTC</div>
+          <div class="orange-kicker">CALLAWAY COMMAND SPORTS NETWORK</div>
           <div class="brand-title">CHARGERS CHALLENGE</div>
-          <div class="brand-sub">LIVE TEAM ANSWER GAME</div>
+          <div class="brand-sub"><span class="live-dot"></span> LIVE CLASSROOM COMPETITION</div>
         </div>
       </div>
       <div class="broadcast-meta">
-        <div class="live-chip"><span class="live-dot"></span><span id="connectedCount">0 Teams Connected</span></div>
-        <div class="room-chip">ROOM <strong id="roomLabel"></strong></div>
+        <div class="meta-stat"><small>TEAMS</small><strong id="connectedCount">0 Connected</strong></div>
+        <div class="meta-stat room-stat"><small>ROOM</small><strong id="roomLabel"></strong></div>
       </div>
     </header>
 
-    <div class="broadcast-grid">
+    <div class="broadcast-grid stadium-grid">
       <aside class="left-rail">
-        <section id="joinPanel" class="glass-card join-card">
-          <div class="rail-label">JOIN THE GAME</div>
+        <section id="joinPanel" class="glass-card join-card neon-card">
+          <div class="rail-label">ENTRY PASS</div>
           <div id="joinQr" class="qr-box"></div>
-          <div class="scan-copy">SCAN TO JOIN</div>
+          <div class="scan-copy">SCAN • JOIN • COMPETE</div>
           <div id="joinUrlText" class="mini-url"></div>
           <div class="room-big-label">ROOM CODE</div>
           <div id="joinRoomCode" class="room-big"></div>
         </section>
 
-        <section class="glass-card control-card">
-          <div class="rail-label">HOST CONTROLS</div>
-          <button id="startBtn" class="btn btn-primary btn-block">Start Question</button>
-          <button id="lockBtn" class="btn btn-blue btn-block">Lock Answers</button>
-          <button id="revealBtn" class="btn btn-blue btn-block">Reveal + Score</button>
-          <button id="nextBtn" class="btn btn-primary btn-block">Next Question</button>
-          <button id="manageQuestionsBtnGame" class="btn btn-ghost btn-block">Manage Questions</button>
-          <button id="resetBtn" class="btn btn-danger btn-block">Reset Game</button>
+        <section class="glass-card control-card neon-card">
+          <div class="rail-label">GAME CONTROL</div>
+          <button id="startBtn" class="btn btn-primary btn-block">▶ START QUESTION</button>
+          <button id="lockBtn" class="btn btn-lock btn-block">🔒 LOCK ANSWERS</button>
+          <button id="revealBtn" class="btn btn-reveal btn-block">⚡ REVEAL + SCORE</button>
+          <button id="nextBtn" class="btn btn-primary btn-block">NEXT QUESTION ▶</button>
+          <button id="manageQuestionsBtnGame" class="btn btn-ghost btn-block">QUESTION MANAGER</button>
+          <button id="resetBtn" class="btn btn-danger btn-block">RESET GAME</button>
         </section>
 
-        <section class="scoring-strip">
+        <section class="scoring-strip scoring-neon">
           <div><span class="plus">+100</span><small>CORRECT</small></div>
           <div><span class="minus">-50</span><small>WRONG</small></div>
           <div><span class="minus">-50</span><small>NO ANSWER</small></div>
@@ -73,37 +82,48 @@
       </aside>
 
       <section class="question-arena">
-        <div class="question-topline">
-          <div id="roundText" class="question-number">READY</div>
-          <div id="phaseText" class="phase-pill">WAITING</div>
-        </div>
-
-        <section class="hero-question-card">
-          <div class="hero-glow"></div>
-          <div class="question-label">CURRENT QUESTION</div>
-          <h2 id="questionText" class="question-text">Select Start Question.</h2>
-          <div id="choices" class="choice-grid"></div>
+        <section class="status-command-bar">
+          <div class="round-wrap"><span class="bar-label">ROUND STATUS</span><strong id="roundText">READY</strong></div>
+          <div class="response-meter-wrap">
+            <div class="meter-copy"><span>RESPONSES LOCKED IN</span><strong><span id="submissionCount">0</span>/<span id="submissionTotal">0</span></strong></div>
+            <div class="response-meter"><div id="submissionBar" class="response-meter-fill"></div></div>
+          </div>
+          <div id="phaseText" class="phase-pill stadium-phase">WAITING</div>
         </section>
 
-        <section class="glass-card summary-card">
-          <div class="section-heading"><span>ANSWER SUMMARY</span><small>LIVE</small></div>
+        <section class="hero-question-card stadium-arena">
+          <div class="arena-speed-lines"></div>
+          <div class="arena-lightning lightning-one"></div><div class="arena-lightning lightning-two"></div>
+          <img src="callaway-chargers-logo.png" class="arena-watermark" alt="">
+          <div class="question-label"><span class="pulse-dot"></span> LIVE QUESTION</div>
+          <h2 id="questionText" class="question-text">Select Start Question.</h2>
+          <div id="choices" class="choice-grid stadium-choices"></div>
+          <div class="arena-footer-line"><span>CALLAWAY CHARGERS JROTC</span><span>MOTIVATE • LEAD • ACHIEVE</span></div>
+        </section>
+
+        <section class="glass-card summary-card neon-card">
+          <div class="section-heading"><span>LIVE ANSWER BOARD</span><small>TEAMS MAY CHANGE ANSWERS UNTIL LOCK</small></div>
           <div id="submissions" class="answer-summary-grid"></div>
         </section>
 
-        <section class="info-ticker">
-          <div class="ticker-block">
+        <section class="info-ticker stadium-ticker">
+          <div class="ticker-block answer-reveal-block">
             <div class="ticker-label">CORRECT ANSWER</div>
             <div id="correctAnswerDisplay">Hidden until reveal</div>
           </div>
           <div class="ticker-block scoring-ticker">
             <div class="ticker-label">AUTOMATIC SCORING</div>
-            <div><b class="plus">Correct +100</b><b class="minus">Wrong -50</b><b class="minus">No Answer -50</b></div>
+            <div><b class="plus">+100 CORRECT</b><b class="minus">-50 WRONG</b><b class="minus">-50 NO ANSWER</b></div>
           </div>
         </section>
       </section>
 
-      <aside class="glass-card leaderboard-card">
-        <div class="leaderboard-head"><div><div class="orange-kicker">LIVE RANKINGS</div><h2>LEADERBOARD</h2></div><span class="live-chip mini"><span class="live-dot"></span>LIVE</span></div>
+      <aside class="glass-card leaderboard-card stadium-leaderboard neon-card">
+        <div class="leaderboard-head">
+          <div><div class="orange-kicker">CALLAWAY LIVE RANKINGS</div><h2>LEADERBOARD</h2></div>
+          <span class="live-chip mini"><span class="live-dot"></span>LIVE</span>
+        </div>
+        <div class="leaderboard-podium-label">⚡ BATTLE FOR THE TOP SPOT</div>
         <div id="scoreboard"></div>
       </aside>
     </div>

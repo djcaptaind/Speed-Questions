@@ -1,6 +1,75 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Teams | Chargers Challenge</title><link rel="stylesheet" href="styles.css"/></head>
-<body class="team-page"><main class="app-shell">
-<section id="joinView" class="setup-stage"><section class="setup-cinematic team-setup"><div class="setup-logo-wrap"><img src="callaway-chargers-logo.png" class="setup-logo" alt="Callaway Chargers JROTC"></div><div class="setup-copy"><div class="orange-kicker">CALLAWAY JROTC</div><h1>CHARGERS<br><span>CHALLENGE</span></h1><p class="setup-sub">TEAM / PLAYER VIEW</p><div class="setup-rule"></div><div class="join-fields"><div><label class="label">ROOM CODE</label><input id="roomCode" class="input cinematic-input" placeholder="EAGLES24"></div><div><label class="label">TEAM NAME</label><input id="teamName" class="input cinematic-input" placeholder="Chargers"></div></div><div class="setup-actions"><button id="joinBtn" class="btn btn-primary">Join Game</button><a class="btn btn-ghost" href="host.html">Instructor Screen</a></div><p id="joinError" class="error-text"></p></div></section></section>
-<section id="gameView" class="hidden game-stage"><header class="broadcast-header"><div class="brand-block"><img src="callaway-chargers-logo.png" class="brand-logo" alt="Callaway Chargers JROTC"><div><div class="orange-kicker">TEAM / PLAYER VIEW</div><div id="teamLabel" class="brand-title">YOUR TEAM</div><div class="brand-sub">ROOM <strong id="roomLabel"></strong></div></div></div><div class="broadcast-meta"><div class="live-chip"><span class="live-dot"></span><span id="answerState"></span></div></div></header>
-<div class="team-game-grid"><section class="question-arena"><div class="question-topline"><div id="roundText" class="question-number">WAITING FOR HOST</div><div class="phase-pill">LIVE</div></div><section class="hero-question-card player"><div class="hero-glow"></div><div class="question-label">CURRENT QUESTION</div><h2 id="questionText" class="question-text">The instructor will start the first question.</h2><div id="choices" class="choice-grid"></div></section><div id="statusMessage" class="player-status">Ready.</div></section><aside class="glass-card leaderboard-card"><div class="leaderboard-head"><div><div class="orange-kicker">LIVE RANKINGS</div><h2>LEADERBOARD</h2></div><span class="live-chip mini"><span class="live-dot"></span>LIVE</span></div><div id="scoreboard"></div></aside></div></section>
-</main><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script><script src="firebase-config.js"></script><script src="effects.js"></script><script src="app.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Team | Chargers Challenge Stadium Edition</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body class="team-page" data-phase="waiting">
+<div class="ambient-orb orb-one"></div><div class="ambient-orb orb-two"></div><div class="scan-grid"></div>
+<main class="app-shell">
+  <section id="joinView" class="setup-stage">
+    <section class="setup-cinematic ultra-setup team-setup">
+      <div class="setup-logo-wrap">
+        <div class="logo-halo"></div>
+        <img src="callaway-chargers-logo.png" class="setup-logo" alt="Callaway Chargers JROTC">
+        <div class="setup-broadcast-tag"><span></span> TEAM ENTRY</div>
+      </div>
+      <div class="setup-copy">
+        <div class="orange-kicker">CALLAWAY JROTC • CHARGERS CHALLENGE</div>
+        <h1>ENTER<br><span>THE ARENA</span></h1>
+        <p class="setup-sub">Choose your team name. Answer fast. Change your answer until the host locks.</p>
+        <div class="setup-rule"></div>
+        <div class="join-fields">
+          <div><label class="label" for="roomCode">ROOM CODE</label><input id="roomCode" class="input cinematic-input" placeholder="Example: CHARGE"></div>
+          <div><label class="label" for="teamName">TEAM NAME</label><input id="teamName" class="input cinematic-input" placeholder="Example: Chargers"></div>
+        </div>
+        <div class="setup-actions"><button id="joinBtn" class="btn btn-primary launch-btn">⚡ JOIN THE CHALLENGE</button><a class="btn btn-ghost" href="host.html">Instructor Screen</a></div>
+        <p id="joinError" class="error-text"></p>
+      </div>
+    </section>
+  </section>
+
+  <section id="gameView" class="hidden game-stage">
+    <header class="broadcast-header mega-header team-mega-header">
+      <div class="header-energy"></div>
+      <div class="brand-block">
+        <div class="brand-logo-shell"><img src="callaway-chargers-logo.png" class="brand-logo" alt="Callaway Chargers JROTC"></div>
+        <div><div class="orange-kicker">TEAM CONTROL</div><div id="teamLabel" class="brand-title">YOUR TEAM</div><div class="brand-sub">ROOM <strong id="roomLabel"></strong></div></div>
+      </div>
+      <div class="broadcast-meta"><div class="meta-stat"><small>GAME STATUS</small><strong id="answerState">WAITING</strong></div></div>
+    </header>
+
+    <div class="team-game-grid stadium-team-grid">
+      <section class="question-arena">
+        <section class="status-command-bar team-status-command">
+          <div class="round-wrap"><span class="bar-label">CURRENT ROUND</span><strong id="roundText">Waiting for host...</strong></div>
+          <div class="team-instruction">TAP ANY ANSWER TO CHANGE YOUR SELECTION BEFORE LOCK</div>
+          <div class="phase-pill stadium-phase">LIVE</div>
+        </section>
+        <section class="hero-question-card player stadium-arena team-arena">
+          <div class="arena-speed-lines"></div><div class="arena-lightning lightning-one"></div><div class="arena-lightning lightning-two"></div>
+          <img src="callaway-chargers-logo.png" class="arena-watermark" alt="">
+          <div class="question-label"><span class="pulse-dot"></span> LIVE QUESTION</div>
+          <h2 id="questionText" class="question-text">The instructor will start the first question.</h2>
+          <div id="choices" class="choice-grid stadium-choices player-choices"></div>
+          <div id="statusMessage" class="player-status stadium-player-status">READY FOR THE CHALLENGE.</div>
+        </section>
+      </section>
+
+      <aside class="glass-card leaderboard-card stadium-leaderboard team-leaderboard neon-card">
+        <div class="leaderboard-head"><div><div class="orange-kicker">LIVE RANKINGS</div><h2>LEADERBOARD</h2></div><span class="live-chip mini"><span class="live-dot"></span>LIVE</span></div>
+        <div class="leaderboard-podium-label">⚡ YOUR TEAM IS HIGHLIGHTED</div>
+        <div id="scoreboard"></div>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="effects.js"></script>
+<script src="app.js"></script>
+</body></html>

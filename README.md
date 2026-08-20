@@ -1,35 +1,37 @@
-# CALLAWAY CHARGERS CHALLENGE — Cinematic Game Edition
+# Callaway Chargers Challenge — Stadium Broadcast Edition
 
-This package is the redesigned Callaway JROTC team answer game with a Command Network-inspired cinematic presentation.
+This package is a full visual upgrade of the working Callaway JROTC Firebase team answer game.
 
-## Included upgrades
-- New **CHARGERS CHALLENGE** game-show identity
-- Callaway Chargers JROTC logo integrated throughout
-- Deep navy/black cinematic background with orange glow accents
-- Oversized current-question presentation
-- Live broadcast-style leaderboard
-- Compact QR / room join panel
-- Stronger answer cards and reveal effects
-- Correct answer = **+100**
-- Wrong answer = **-50**
-- No answer = **-50**
-- Teams can change an answer until the host locks answers
-- Teams joining after a question starts are not penalized for that question
-- CSV/Excel question import remains enabled
-- Firebase configuration is already filled with the Callaway JROTC Answer Game project values
+## Major visual upgrades
+- Stadium/broadcast-style header and arena
+- Animated orange/blue ambient lighting and scan-grid background
+- Large Callaway Chargers logo treatment and watermark
+- Live response meter showing how many eligible teams have answered
+- More dramatic A/B/C/D answer cards
+- Broadcast-style live leaderboard with top-rank highlighting
+- Phase-driven visual states for OPEN / LOCKED / REVEALED
+- Stronger team-screen presentation
+- QR code now carries the room code automatically to the team page
+
+## Game behavior preserved
+- Correct answer: +100 (or question point value)
+- Wrong answer: -50
+- No answer: -50
+- Teams may change answers until the instructor locks answers
+- A team joining after a question starts is not penalized for that question
+- CSV/Excel question manager remains included
+- Firebase configuration for `callaway-jrotc-answer-game` is included
 
 ## Upload to GitHub
-Upload the CONTENTS of this folder directly to the root of the `Speed-Questions` repository, replacing matching files.
+Upload the CONTENTS of this folder to the ROOT of the `Speed-Questions` repository and replace the matching files.
 
-Do not upload the containing folder itself if you want the live URLs to remain:
-- `https://djcaptaind.github.io/Speed-Questions/host.html`
-- `https://djcaptaind.github.io/Speed-Questions/index.html`
-
-## Important files
-- `host.html` — instructor/host screen
-- `index.html` — team/player screen
-- `styles.css` — cinematic visual design
-- `host.js` — host controls and automatic scoring
-- `app.js` — team screen and answer-changing logic
+Important files:
+- `host.html` — instructor screen
+- `index.html` — team screen
+- `styles.css` — Stadium Broadcast visual design
+- `host.js` — host/Firebase/scoring logic
+- `app.js` — team answering logic
 - `firebase-config.js` — Firebase connection
-- `callaway-chargers-logo.png` — Callaway Chargers logo
+- `callaway-chargers-logo.png` — Callaway logo
+
+After GitHub Pages deploys, hard refresh with Ctrl + Shift + R.

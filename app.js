@@ -98,6 +98,7 @@
     const q = state.currentQuestion;
     const phase = state.phase || 'waiting';
     const eligible = !!state.eligibleTeams?.[teamId];
+    document.body.dataset.phase = phase;
 
     if (!q) {
       $('roundText').textContent = 'Waiting for host...';
@@ -161,19 +162,22 @@
     const myScore = teams?.[teamId]?.score ?? 0;
     const scoreDelta = previousMyScore === null ? 0 : myScore - previousMyScore;
     const sorted = Object.entries(teams).sort((a,b) => (b[1].score||0)-(a[1].score||0) || (a[1].name||'').localeCompare(b[1].name||''));
-    $('scoreboard').innerHTML = sorted.map(([id,t], idx) =>
-      `<div class="score-row ${id===teamId?'my-team':''}">
-        <div class="rank">${idx+1}</div>
+    $('scoreboard').innerHTML = sorted.map(([id,t], idx) => {
+      const medal = idx === 0 ? '⚡' : String(idx + 1);
+      return `<div class="score-row ${id===teamId?'my-team':''}">
+        <div class="rank">${medal}</div>
         <div class="score-name">${escapeHtml(t.name||id)}</div>
         <div class="score-points ${id===teamId&&scoreDelta>0?'score-up':id===teamId&&scoreDelta<0?'score-down':''}">${t.score||0}</div>
-      </div>`
-    ).join('') || '<p class="small">No teams yet.</p>';
+      </div>`;
+    }).join('') || '<p class="small">No teams yet.</p>';
     previousMyScore = myScore;
   }
 
+  const urlRoom = new URLSearchParams(window.location.search).get('room');
   const savedRoom = localStorage.getItem('answerGameRoom');
   const savedTeam = localStorage.getItem('answerGameTeam');
-  if (savedRoom) $('roomCode').value = savedRoom;
+  if (urlRoom) $('roomCode').value = String(urlRoom).toUpperCase();
+  else if (savedRoom) $('roomCode').value = savedRoom;
   if (savedTeam) $('teamName').value = savedTeam;
   GameFX.addSoundToggle();
 })();
