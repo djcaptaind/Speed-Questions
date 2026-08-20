@@ -43,10 +43,16 @@
 
     <div class="team-game-grid stadium-team-grid">
       <section class="question-arena">
-        <section class="status-command-bar team-status-command">
+        <section class="status-command-bar team-status-command timer-team-command">
           <div class="round-wrap"><span class="bar-label">CURRENT ROUND</span><strong id="roundText">Waiting for host...</strong></div>
           <div class="team-instruction">TAP ANY ANSWER TO CHANGE YOUR SELECTION BEFORE LOCK</div>
-          <div class="phase-pill stadium-phase">LIVE</div>
+          <div id="teamTimerRing" class="timer-ring team-timer-ring" aria-label="Time remaining">
+            <div class="timer-ring-inner">
+              <span class="timer-caption">TIME</span>
+              <strong id="teamTimerText">--</strong>
+            </div>
+          </div>
+          <div id="teamPhasePill" class="phase-pill stadium-phase">LIVE</div>
         </section>
         <section class="hero-question-card player stadium-arena team-arena">
           <div class="arena-speed-lines"></div><div class="arena-lightning lightning-one"></div><div class="arena-lightning lightning-two"></div>

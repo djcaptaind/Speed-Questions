@@ -35,3 +35,33 @@ Important files:
 - `callaway-chargers-logo.png` — Callaway logo
 
 After GitHub Pages deploys, hard refresh with Ctrl + Shift + R.
+
+
+## Adjustable Question Timer Upgrade
+- Timer is adjustable from **5 to 300 seconds**.
+- Quick presets: **15 / 20 / 30 / 45 / 60 seconds**.
+- Timer setting automatically carries to the next question.
+- Timer is synchronized through Firebase and is visible on the **host screen and every team phone**.
+- At **0 seconds**, answers automatically lock.
+- Host can **pause/resume** the timer.
+- Host can add **+5 seconds** during a live question.
+- `APPLY TO CURRENT QUESTION` resets the active question's timer to the newly selected time.
+- The timer can be turned **OFF** for untimed questions.
+- The timer changes from orange to amber at 10 seconds and flashes red for the final 5 seconds.
+- No-answer scoring remains **-50** when the instructor reveals/scores the question.
+
+The built-in **FULL SCREEN** button from the previous upgrade is retained.
+
+
+## Timer Flow Update
+The timer now follows the host controls automatically:
+
+1. **Start Question** — timer starts.
+2. Teams may answer/change answers while time remains.
+3. **Next Question** — the next question opens and a brand-new timer starts automatically.
+4. **Reveal + Score** — the timer stops and resets to the selected duration.
+5. The reset timer stays ready until the next question begins.
+
+Example: if the timer is set to **30 seconds**, Reveal + Score resets the display to **30**, and Next Question immediately begins counting down from **30** again.
+
+The host can still pause/resume, add +5 seconds, change the duration, or turn the timer off.

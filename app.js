@@ -1,6 +1,7 @@
 (() => {
   const $ = id => document.getElementById(id);
   let db, roomRef, roomCode, teamId, teamName, currentState = null, selected = null, previousPhase = null, previousQuestionIndex = null, previousMyScore = null;
+  let timerInterval = null, serverTimeOffset = 0;
 
   const BLOCKED_WORDS = ['fuck','shit','bitch','asshole','nigger','nigga','cunt','dick','pussy'];
   function configured() { return window.FIREBASE_CONFIG && !String(window.FIREBASE_CONFIG.apiKey).startsWith('PASTE_'); }
@@ -9,10 +10,47 @@
   function inappropriateName(s='') { const x = normalizeName(s).toLowerCase().replace(/[^a-z0-9]/g,''); return BLOCKED_WORDS.some(w => x.includes(w)); }
   function escapeHtml(s='') { return String(s).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c])); }
 
+  function timerRemainingMs(state = currentState) {
+    if (!state || !state.timerEnabled) return null;
+    if (state.timerRunning && state.timerEndAt) return Math.max(0, Number(state.timerEndAt) - (Date.now() + serverTimeOffset));
+    if (state.timerPausedRemaining != null) return Math.max(0, Number(state.timerPausedRemaining));
+    if (state.timerDuration) return Math.max(0, Number(state.timerDuration) * 1000);
+    return null;
+  }
+
+  function updateTeamTimer() {
+    const ring = $('teamTimerRing');
+    const text = $('teamTimerText');
+    if (!ring || !text) return;
+    const state = currentState || {};
+    const enabled = !!state.timerEnabled;
+    ring.classList.toggle('timer-disabled', !enabled);
+    ring.classList.toggle('timer-paused', enabled && !state.timerRunning && state.phase === 'open');
+    ring.classList.toggle('timer-reset', enabled && !state.timerRunning && state.phase === 'revealed');
+    if (!enabled) {
+      text.textContent = 'OFF';
+      ring.style.setProperty('--timer-progress', '0deg');
+      ring.classList.remove('timer-low', 'timer-critical');
+      return;
+    }
+    const total = Math.max(1, Number(state.timerDuration || 30) * 1000);
+    const ms = Math.max(0, timerRemainingMs(state) ?? total);
+    const seconds = Math.ceil(ms / 1000);
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    text.textContent = mins > 0 ? `${mins}:${String(secs).padStart(2,'0')}` : String(seconds);
+    ring.style.setProperty('--timer-progress', `${Math.max(0, Math.min(1, ms / total)) * 360}deg`);
+    ring.classList.toggle('timer-low', seconds <= 10 && seconds > 5);
+    ring.classList.toggle('timer-critical', seconds <= 5);
+  }
+
+  timerInterval = setInterval(updateTeamTimer, 200);
+
   function initFirebase() {
     if (!configured()) return false;
     if (!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
     db = firebase.database();
+    db.ref('.info/serverTimeOffset').on('value', snap => { serverTimeOffset = Number(snap.val() || 0); });
     return true;
   }
 
@@ -99,6 +137,8 @@
     const phase = state.phase || 'waiting';
     const eligible = !!state.eligibleTeams?.[teamId];
     document.body.dataset.phase = phase;
+    if ($('teamPhasePill')) $('teamPhasePill').textContent = phase.toUpperCase();
+    updateTeamTimer();
 
     if (!q) {
       $('roundText').textContent = 'Waiting for host...';
@@ -107,6 +147,7 @@
       $('answerState').textContent = '';
       $('statusMessage').textContent = 'Ready.';
       selected = null;
+      updateTeamTimer();
       return;
     }
 
@@ -135,13 +176,13 @@
 
     if (phase === 'open') {
       $('statusMessage').textContent = myAnswer !== undefined
-        ? `Selected ${String.fromCharCode(65 + myAnswer)}. You may change your answer until the instructor locks answers.`
-        : 'Choose an answer. You may change it until the instructor locks answers.';
+        ? `Selected ${String.fromCharCode(65 + myAnswer)}. You may change your answer until the timer ends or the instructor locks answers.`
+        : 'Choose an answer. You may change it until the timer ends or the instructor locks answers.';
     }
     if (phase === 'locked') {
       $('statusMessage').textContent = myAnswer !== undefined
-        ? `Final answer locked: ${String.fromCharCode(65 + myAnswer)}.`
-        : 'Answers are locked. No answer was submitted.';
+        ? `${state.timerLockedReason === 'timer' ? 'TIME EXPIRED • ' : ''}Final answer locked: ${String.fromCharCode(65 + myAnswer)}.`
+        : (state.timerLockedReason === 'timer' ? 'TIME EXPIRED. No answer was submitted.' : 'Answers are locked. No answer was submitted.');
     }
     if (phase === 'revealed') {
       const isCorrect = myAnswer === q.answer;
@@ -155,7 +196,7 @@
     if (!currentState || currentState.phase !== 'open') return;
     selected = choice;
     await roomRef.child('answers/' + teamId).set({ choice, submittedAt: Date.now(), teamName });
-    $('statusMessage').textContent = `Selected ${String.fromCharCode(65 + choice)}. You may change your answer until the instructor locks answers.`;
+    $('statusMessage').textContent = `Selected ${String.fromCharCode(65 + choice)}. You may change your answer until the timer ends or the instructor locks answers.`;
   }
 
   function renderScores(teams) {

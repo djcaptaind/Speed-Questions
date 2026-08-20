@@ -1,6 +1,7 @@
 (() => {
   const $ = id => document.getElementById(id);
   let db, roomRef, roomCode, state = {}, questionIndex = 0, previousPhase = null, previousIndex = null, previousScores = {};
+  let timerInterval = null, autoLockInFlight = false, serverTimeOffset = 0;
 
   const configured = () => window.FIREBASE_CONFIG && !String(window.FIREBASE_CONFIG.apiKey).startsWith('PASTE_');
   const esc = (s='') => String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]));
@@ -14,8 +15,180 @@
     if (!configured()) return false;
     if (!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
     db = firebase.database();
+    db.ref('.info/serverTimeOffset').on('value', snap => { serverTimeOffset = Number(snap.val() || 0); });
     return true;
   }
+
+  function setFullscreenButtonState() {
+    const btn = $('fullscreenBtn');
+    if (!btn) return;
+    const active = !!document.fullscreenElement;
+    btn.textContent = active ? '⤢ EXIT FULL SCREEN' : '⛶ FULL SCREEN';
+    btn.classList.toggle('is-active', active);
+  }
+
+  async function toggleFullscreen() {
+    try {
+      if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+      else await document.exitFullscreen();
+    } catch (e) {
+      alert('Full screen could not be started. Try pressing F11.');
+    } finally {
+      setFullscreenButtonState();
+    }
+  }
+
+  const fullscreenBtn = $('fullscreenBtn');
+  if (fullscreenBtn) fullscreenBtn.onclick = toggleFullscreen;
+  document.addEventListener('fullscreenchange', setFullscreenButtonState);
+  setFullscreenButtonState();
+
+  function clampTimerSeconds(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return 30;
+    return Math.max(5, Math.min(300, Math.round(n)));
+  }
+
+  function timerSettings() {
+    const enabled = $('timerEnabled') ? $('timerEnabled').checked : true;
+    const seconds = clampTimerSeconds($('timerSeconds') ? $('timerSeconds').value : 30);
+    return { enabled, seconds };
+  }
+
+  function saveTimerSettings() {
+    const { enabled, seconds } = timerSettings();
+    localStorage.setItem('chargersTimerEnabled', enabled ? '1' : '0');
+    localStorage.setItem('chargersTimerSeconds', String(seconds));
+    if ($('timerSeconds')) $('timerSeconds').value = seconds;
+  }
+
+  function loadTimerSettings() {
+    const savedSeconds = Number(localStorage.getItem('chargersTimerSeconds'));
+    const savedEnabled = localStorage.getItem('chargersTimerEnabled');
+    if ($('timerSeconds') && Number.isFinite(savedSeconds) && savedSeconds >= 5) $('timerSeconds').value = clampTimerSeconds(savedSeconds);
+    if ($('timerEnabled') && savedEnabled !== null) $('timerEnabled').checked = savedEnabled !== '0';
+  }
+
+  function timerRemainingMs(s = state) {
+    if (!s || !s.timerEnabled) return null;
+    if (s.timerRunning && s.timerEndAt) return Math.max(0, Number(s.timerEndAt) - (Date.now() + serverTimeOffset));
+    if (s.timerPausedRemaining != null) return Math.max(0, Number(s.timerPausedRemaining));
+    if (s.timerDuration) return Math.max(0, Number(s.timerDuration) * 1000);
+    return null;
+  }
+
+  function setTimerRing(ring, textEl, remainingMs, durationSec, enabled, running) {
+    if (!ring || !textEl) return;
+    ring.classList.toggle('timer-disabled', !enabled);
+    ring.classList.toggle('timer-paused', enabled && !running && state.phase === 'open');
+    ring.classList.toggle('timer-reset', enabled && !running && state.phase === 'revealed');
+    if (!enabled) {
+      textEl.textContent = 'OFF';
+      ring.style.setProperty('--timer-progress', '0deg');
+      ring.classList.remove('timer-low', 'timer-critical');
+      return;
+    }
+    const total = Math.max(1, Number(durationSec || 30) * 1000);
+    const ms = Math.max(0, remainingMs ?? total);
+    const seconds = Math.ceil(ms / 1000);
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    textEl.textContent = mins > 0 ? `${mins}:${String(secs).padStart(2,'0')}` : String(seconds);
+    const pct = Math.max(0, Math.min(1, ms / total));
+    ring.style.setProperty('--timer-progress', `${pct * 360}deg`);
+    ring.classList.toggle('timer-low', seconds <= 10 && seconds > 5);
+    ring.classList.toggle('timer-critical', seconds <= 5);
+  }
+
+  async function lockAnswers(reason = 'manual') {
+    if (!roomRef || state.phase !== 'open') return;
+    const remaining = timerRemainingMs();
+    const updates = {
+      phase: 'locked',
+      timerRunning: false,
+      timerPausedRemaining: remaining == null ? null : remaining,
+      timerLockedReason: reason
+    };
+    await roomRef.update(updates);
+  }
+
+  async function autoLockAtZero() {
+    if (autoLockInFlight || !roomRef || state.phase !== 'open' || !state.timerEnabled) return;
+    autoLockInFlight = true;
+    try {
+      const snap = await roomRef.once('value');
+      const latest = snap.val() || {};
+      const remaining = latest.timerRunning && latest.timerEndAt ? Number(latest.timerEndAt) - (Date.now() + serverTimeOffset) : Number(latest.timerPausedRemaining ?? 1);
+      if (latest.phase === 'open' && latest.timerEnabled && remaining <= 0) {
+        await roomRef.update({
+          phase: 'locked',
+          timerRunning: false,
+          timerPausedRemaining: 0,
+          timerLockedReason: 'timer'
+        });
+      }
+    } finally {
+      setTimeout(() => { autoLockInFlight = false; }, 350);
+    }
+  }
+
+  function updateHostTimer() {
+    const ring = $('hostTimerRing');
+    const text = $('hostTimerText');
+    if (!ring || !text) return;
+    const remaining = timerRemainingMs();
+    setTimerRing(ring, text, remaining, state.timerDuration, !!state.timerEnabled, !!state.timerRunning);
+    if (state.phase === 'open' && state.timerEnabled && state.timerRunning && remaining != null && remaining <= 0) autoLockAtZero();
+    if ($('pauseTimerBtn')) {
+      $('pauseTimerBtn').disabled = state.phase !== 'open' || !state.timerEnabled;
+      $('pauseTimerBtn').textContent = state.timerRunning ? '⏸ PAUSE' : '▶ RESUME';
+    }
+    if ($('addTimeBtn')) $('addTimeBtn').disabled = state.phase !== 'open' || !state.timerEnabled;
+    if ($('applyTimerBtn')) $('applyTimerBtn').disabled = state.phase !== 'open';
+  }
+
+  async function pauseResumeTimer() {
+    if (!roomRef || state.phase !== 'open' || !state.timerEnabled) return;
+    if (state.timerRunning) {
+      const remaining = timerRemainingMs();
+      await roomRef.update({ timerRunning: false, timerPausedRemaining: remaining, timerEndAt: null });
+    } else {
+      const remaining = Math.max(0, Number(state.timerPausedRemaining ?? state.timerDuration * 1000));
+      await roomRef.update({ timerRunning: true, timerPausedRemaining: null, timerEndAt: Date.now() + serverTimeOffset + remaining });
+    }
+  }
+
+  async function addFiveSeconds() {
+    if (!roomRef || state.phase !== 'open' || !state.timerEnabled) return;
+    if (state.timerRunning && state.timerEndAt) await roomRef.child('timerEndAt').set(Number(state.timerEndAt) + 5000);
+    else await roomRef.child('timerPausedRemaining').set(Math.max(0, Number(state.timerPausedRemaining || 0)) + 5000);
+  }
+
+  async function applyTimerToCurrent() {
+    if (!roomRef || state.phase !== 'open') return;
+    saveTimerSettings();
+    const { enabled, seconds } = timerSettings();
+    await roomRef.update({
+      timerEnabled: enabled,
+      timerDuration: seconds,
+      timerRunning: enabled,
+      timerEndAt: enabled ? Date.now() + serverTimeOffset + seconds * 1000 : null,
+      timerPausedRemaining: enabled ? null : seconds * 1000,
+      timerLockedReason: null
+    });
+  }
+
+  loadTimerSettings();
+  if ($('timerSeconds')) $('timerSeconds').addEventListener('change', saveTimerSettings);
+  if ($('timerEnabled')) $('timerEnabled').addEventListener('change', saveTimerSettings);
+  document.querySelectorAll('[data-timer-preset]').forEach(btn => btn.addEventListener('click', () => {
+    if ($('timerSeconds')) $('timerSeconds').value = btn.dataset.timerPreset;
+    saveTimerSettings();
+  }));
+  if ($('pauseTimerBtn')) $('pauseTimerBtn').onclick = pauseResumeTimer;
+  if ($('addTimeBtn')) $('addTimeBtn').onclick = addFiveSeconds;
+  if ($('applyTimerBtn')) $('applyTimerBtn').onclick = applyTimerToCurrent;
+  timerInterval = setInterval(updateHostTimer, 200);
 
   function renderJoinQr() {
     const join = new URL('index.html', window.location.href);
@@ -63,6 +236,7 @@
       const oldPhase = previousPhase, oldIndex = previousIndex;
       state = snap.val() || {};
       questionIndex = state.questionIndex || 0;
+      if (oldIndex !== questionIndex || state.phase !== 'open') autoLockInFlight = false;
       render();
       if (oldIndex !== null && questionIndex !== oldIndex && state.currentQuestion) {
         GameFX.sounds.open();
@@ -115,6 +289,7 @@
 
     renderSubmissions();
     renderScores();
+    updateHostTimer();
   }
 
   function renderSubmissions() {
@@ -170,6 +345,9 @@
     if (!questions[index]) return;
     const currentTeams = state.teams || {};
     const eligibleTeams = Object.fromEntries(Object.keys(currentTeams).map(id => [id, true]));
+    saveTimerSettings();
+    const { enabled: timerEnabled, seconds: timerDuration } = timerSettings();
+    const timerEndAt = timerEnabled && phase === 'open' ? Date.now() + serverTimeOffset + timerDuration * 1000 : null;
     await roomRef.update({
       questionIndex: index,
       currentQuestion: questions[index],
@@ -177,7 +355,13 @@
       answers: null,
       scored: false,
       eligibleTeams,
-      message: ''
+      message: '',
+      timerEnabled,
+      timerDuration,
+      timerRunning: timerEnabled && phase === 'open',
+      timerEndAt,
+      timerPausedRemaining: timerEnabled ? null : timerDuration * 1000,
+      timerLockedReason: null
     });
   }
 
@@ -185,12 +369,13 @@
     await loadQuestion(questionIndex, 'open');
     $('joinPanel').classList.add('hidden');
   };
-  $('lockBtn').onclick = () => roomRef.child('phase').set('locked');
+  $('lockBtn').onclick = () => lockAnswers('manual');
   $('nextBtn').onclick = async () => {
     const next = questionIndex + 1;
     if (next >= getQuestions().length) {
-      return roomRef.update({ phase: 'waiting', currentQuestion: null, answers: null, message: 'Game complete! Final scores are on the board.' });
+      return roomRef.update({ phase: 'waiting', currentQuestion: null, answers: null, timerRunning: false, timerEndAt: null, timerPausedRemaining: null, message: 'Game complete! Final scores are on the board.' });
     }
+    // Opening the next question automatically starts a fresh countdown.
     await loadQuestion(next, 'open');
   };
   $('revealBtn').onclick = scoreAndReveal;
@@ -198,13 +383,32 @@
   async function scoreAndReveal() {
     const snap = await roomRef.once('value');
     const s = snap.val() || {};
-    if (s.scored || !s.currentQuestion) return roomRef.update({ phase: 'revealed' });
+    if (!s.currentQuestion) return;
+
+    const resetMs = Math.max(5, Number(s.timerDuration || timerSettings().seconds || 30)) * 1000;
+
+    if (s.scored) {
+      return roomRef.update({
+        phase: 'revealed',
+        timerRunning: false,
+        timerEndAt: null,
+        timerPausedRemaining: s.timerEnabled ? resetMs : null,
+        timerLockedReason: null
+      });
+    }
 
     const teams = s.teams || {};
     const answers = s.answers || {};
     const eligibleTeams = s.eligibleTeams || Object.fromEntries(Object.keys(teams).map(id => [id, true]));
     const q = s.currentQuestion;
-    const updates = { phase: 'revealed', scored: true };
+    const updates = {
+      phase: 'revealed',
+      scored: true,
+      timerRunning: false,
+      timerEndAt: null,
+      timerPausedRemaining: s.timerEnabled ? resetMs : null,
+      timerLockedReason: null
+    };
 
     Object.entries(eligibleTeams).forEach(([id, active]) => {
       if (!active || !teams[id]) return;
@@ -260,7 +464,7 @@
   $('resetBtn').onclick = async () => {
     if (!confirm('Reset all scores and restart the game?')) return;
     const teams = state.teams || {};
-    const updates = { phase: 'waiting', questionIndex: 0, currentQuestion: null, answers: null, scored: false, eligibleTeams: null, message: 'New game ready.' };
+    const updates = { phase: 'waiting', questionIndex: 0, currentQuestion: null, answers: null, scored: false, eligibleTeams: null, timerRunning: false, timerEndAt: null, timerPausedRemaining: null, timerLockedReason: null, message: 'New game ready.' };
     Object.keys(teams).forEach(id => updates[`teams/${id}/score`] = 0);
     await roomRef.update(updates);
     $('joinPanel').classList.remove('hidden');

@@ -50,6 +50,7 @@
       <div class="broadcast-meta">
         <div class="meta-stat"><small>TEAMS</small><strong id="connectedCount">0 Connected</strong></div>
         <div class="meta-stat room-stat"><small>ROOM</small><strong id="roomLabel"></strong></div>
+        <button id="fullscreenBtn" class="btn btn-blue fullscreen-btn" type="button">⛶ FULL SCREEN</button>
       </div>
     </header>
 
@@ -74,6 +75,27 @@
           <button id="resetBtn" class="btn btn-danger btn-block">RESET GAME</button>
         </section>
 
+        <section class="glass-card timer-control-card neon-card">
+          <div class="rail-label">QUESTION TIMER</div>
+          <div class="timer-config-row">
+            <label class="timer-enable-label"><input id="timerEnabled" type="checkbox" checked> TIMER ON</label>
+            <div class="timer-seconds-wrap"><input id="timerSeconds" type="number" min="5" max="300" step="5" value="30"><span>SEC</span></div>
+          </div>
+          <div class="timer-presets">
+            <button type="button" data-timer-preset="15">15</button>
+            <button type="button" data-timer-preset="20">20</button>
+            <button type="button" data-timer-preset="30">30</button>
+            <button type="button" data-timer-preset="45">45</button>
+            <button type="button" data-timer-preset="60">60</button>
+          </div>
+          <button id="applyTimerBtn" class="btn btn-ghost btn-block timer-apply-btn" type="button">APPLY TO CURRENT QUESTION</button>
+          <div class="timer-live-controls">
+            <button id="pauseTimerBtn" class="btn btn-ghost" type="button">⏸ PAUSE</button>
+            <button id="addTimeBtn" class="btn btn-ghost" type="button">+5 SEC</button>
+          </div>
+          <div class="timer-help">At 0:00, answers lock automatically. No answer = -50 when scored.</div>
+        </section>
+
         <section class="scoring-strip scoring-neon">
           <div><span class="plus">+100</span><small>CORRECT</small></div>
           <div><span class="minus">-50</span><small>WRONG</small></div>
@@ -82,11 +104,17 @@
       </aside>
 
       <section class="question-arena">
-        <section class="status-command-bar">
+        <section class="status-command-bar timer-command-bar">
           <div class="round-wrap"><span class="bar-label">ROUND STATUS</span><strong id="roundText">READY</strong></div>
           <div class="response-meter-wrap">
             <div class="meter-copy"><span>RESPONSES LOCKED IN</span><strong><span id="submissionCount">0</span>/<span id="submissionTotal">0</span></strong></div>
             <div class="response-meter"><div id="submissionBar" class="response-meter-fill"></div></div>
+          </div>
+          <div id="hostTimerRing" class="timer-ring" aria-label="Question timer">
+            <div class="timer-ring-inner">
+              <span class="timer-caption">TIME</span>
+              <strong id="hostTimerText">--</strong>
+            </div>
           </div>
           <div id="phaseText" class="phase-pill stadium-phase">WAITING</div>
         </section>
