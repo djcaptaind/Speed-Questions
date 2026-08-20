@@ -1,5 +1,5 @@
 (() => {
-  const STORAGE_KEY = 'callawayAnswerGameQuestionBankV2';
+  const STORAGE_KEY = 'callawayAnswerGameQuestionBankV3';
   let originalQuestions = JSON.parse(JSON.stringify(window.GAME_QUESTIONS || []));
   let questions = [];
   let editingIndex = -1;
