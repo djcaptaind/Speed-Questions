@@ -1,7 +1,7 @@
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
+window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyAEnpJF_3R14l25K9Zd3MltfbdAI1erQfM",
   authDomain: "callaway-jrotc-answer-game.firebaseapp.com",
+  databaseURL: "https://callaway-jrotc-answer-game-default-rtdb.firebaseio.com/",
   projectId: "callaway-jrotc-answer-game",
   storageBucket: "callaway-jrotc-answer-game.firebasestorage.app",
   messagingSenderId: "950581678170",
