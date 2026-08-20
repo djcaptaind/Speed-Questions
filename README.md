@@ -1,34 +1,35 @@
-# Callaway Chargers JROTC Answer Game — Logo + Layout Upgrade
+# CALLAWAY CHARGERS CHALLENGE — Cinematic Game Edition
 
-## What was updated
-- Added the **new Callaway Chargers JROTC logo** throughout the game.
-- Updated the host and team layouts to be **more eye-catching** with stronger orange/blue branding.
-- Added **automatic scoring**:
-  - Correct = **+100**
-  - Wrong = **-50**
-  - **No answer = -50**
-- Teams can **change their answer until the host locks answers**.
-- Only teams already active when a question starts are eligible for the **no-answer penalty**.
-- Question Manager remains included for CSV/Excel imports.
+This package is the redesigned Callaway JROTC team answer game with a Command Network-inspired cinematic presentation.
 
-## Files to upload to GitHub
-Upload **all files in this folder** to your repository root.
+## Included upgrades
+- New **CHARGERS CHALLENGE** game-show identity
+- Callaway Chargers JROTC logo integrated throughout
+- Deep navy/black cinematic background with orange glow accents
+- Oversized current-question presentation
+- Live broadcast-style leaderboard
+- Compact QR / room join panel
+- Stronger answer cards and reveal effects
+- Correct answer = **+100**
+- Wrong answer = **-50**
+- No answer = **-50**
+- Teams can change an answer until the host locks answers
+- Teams joining after a question starts are not penalized for that question
+- CSV/Excel question import remains enabled
+- Firebase configuration is already filled with the Callaway JROTC Answer Game project values
 
-## Important setup
-1. Open `firebase-config.js`
-2. Paste your Firebase project configuration.
-3. Make sure your GitHub Pages site points to the same folder where these files are uploaded.
+## Upload to GitHub
+Upload the CONTENTS of this folder directly to the root of the `Speed-Questions` repository, replacing matching files.
 
-## Firebase rule reminder
-Use rules that allow the game to read and write during setup/testing.
+Do not upload the containing folder itself if you want the live URLs to remain:
+- `https://djcaptaind.github.io/Speed-Questions/host.html`
+- `https://djcaptaind.github.io/Speed-Questions/index.html`
 
-## Main pages
-- `host.html` = instructor screen
-- `index.html` = team screen
-
-## Question import format
-Your CSV headers must be exactly:
-
-Question, Answer A, Answer B, Answer C, Answer D, Correct Answer, Points
-
-Correct Answer must be **A, B, C, or D**.
+## Important files
+- `host.html` — instructor/host screen
+- `index.html` — team/player screen
+- `styles.css` — cinematic visual design
+- `host.js` — host controls and automatic scoring
+- `app.js` — team screen and answer-changing logic
+- `firebase-config.js` — Firebase connection
+- `callaway-chargers-logo.png` — Callaway Chargers logo

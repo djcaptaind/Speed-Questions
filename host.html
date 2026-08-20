@@ -1,114 +1,117 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Host | Callaway Chargers JROTC Answer Game</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Host | Chargers Challenge</title>
+  <link rel="stylesheet" href="styles.css"/>
 </head>
 <body class="host-page">
-<main class="shell host-shell">
+<main class="app-shell">
   <section id="setupView" class="setup-stage">
-    <section class="setup-card game-panel">
-      <div class="logo-stack">
-        <img src="callaway-chargers-logo.png" alt="Callaway Chargers JROTC logo" class="hero-logo">
-        <div>
-          <div class="kicker">Instructor Control</div>
-          <h1>Callaway Chargers Answer Game</h1>
-          <p>Create a room, scan the QR code, then run an eye-catching live game with automatic scoring.</p>
+    <section class="setup-cinematic">
+      <div class="setup-logo-wrap"><img src="callaway-chargers-logo.png" class="setup-logo" alt="Callaway Chargers JROTC"></div>
+      <div class="setup-copy">
+        <div class="orange-kicker">CALLAWAY JROTC PRESENTS</div>
+        <h1>CHARGERS<br><span>CHALLENGE</span></h1>
+        <p class="setup-sub">Live Team Answer Game</p>
+        <div class="setup-rule"></div>
+        <label class="label" for="roomCode">GAME ROOM</label>
+        <input id="roomCode" class="input cinematic-input" maxlength="8" placeholder="Example: EAGLES24"/>
+        <div class="setup-actions">
+          <button id="createBtn" class="btn btn-primary">Launch Game Room</button>
+          <button id="manageQuestionsBtn" class="btn btn-blue">Question Manager</button>
+          <a class="btn btn-ghost" href="index.html">Team Screen</a>
         </div>
+        <p id="setupError" class="error-text"></p>
       </div>
-      <div class="setup-grid">
-        <div>
-          <label class="label" for="roomCode">Game Room</label>
-          <input id="roomCode" class="input" maxlength="8" placeholder="Example: EAGLES24" />
-        </div>
-      </div>
-      <div class="footer-links">
-        <button id="createBtn" class="btn btn-primary">Create / Open Room</button>
-        <button id="manageQuestionsBtn" class="btn btn-blue">Manage Questions</button>
-        <a class="btn btn-ghost" href="index.html">Open Team Screen</a>
-      </div>
-      <p class="small">Automatic scoring: <b class="score-good">+100 correct</b> · <b class="score-bad">-50 wrong</b> · <b class="score-bad">-50 no answer</b></p>
-      <p id="setupError" class="small error-text"></p>
     </section>
   </section>
 
-  <section id="hostView" class="hidden">
-    <header class="game-header hero-header game-panel">
-      <div class="brand-lockup">
-        <img src="callaway-chargers-logo.png" alt="Callaway Chargers JROTC" class="brand-logo">
+  <section id="hostView" class="hidden game-stage">
+    <header class="broadcast-header">
+      <div class="brand-block">
+        <img src="callaway-chargers-logo.png" class="brand-logo" alt="Callaway Chargers JROTC">
         <div>
-          <div class="eyebrow">Instructor / Host Computer</div>
-          <h1>CALLAWAY CHARGERS ANSWER GAME</h1>
-          <div class="brand-subline">Live classroom game manager</div>
+          <div class="orange-kicker">CALLAWAY JROTC</div>
+          <div class="brand-title">CHARGERS CHALLENGE</div>
+          <div class="brand-sub">LIVE TEAM ANSWER GAME</div>
         </div>
       </div>
-      <div class="header-badges">
-        <div class="status-card"><span class="status-dot"></span><span id="connectedCount">0 Teams Connected</span></div>
-        <div class="room-pill">Room: <strong id="roomLabel"></strong></div>
+      <div class="broadcast-meta">
+        <div class="live-chip"><span class="live-dot"></span><span id="connectedCount">0 Teams Connected</span></div>
+        <div class="room-chip">ROOM <strong id="roomLabel"></strong></div>
       </div>
     </header>
 
-    <div class="host-dashboard">
-      <aside class="game-panel host-sidebar">
-        <div class="side-title">Teams Join Here</div>
-        <div id="joinPanel" class="join-mini">
-          <div class="qr-box" id="joinQr"></div>
-          <div class="join-instruction">SCAN TO JOIN THE GAME</div>
-          <div class="mini-url" id="joinUrlText"></div>
-          <div class="join-room-line">Room Code <strong id="joinRoomCode"></strong></div>
-        </div>
-        <div class="sidebar-controls">
+    <div class="broadcast-grid">
+      <aside class="left-rail">
+        <section id="joinPanel" class="glass-card join-card">
+          <div class="rail-label">JOIN THE GAME</div>
+          <div id="joinQr" class="qr-box"></div>
+          <div class="scan-copy">SCAN TO JOIN</div>
+          <div id="joinUrlText" class="mini-url"></div>
+          <div class="room-big-label">ROOM CODE</div>
+          <div id="joinRoomCode" class="room-big"></div>
+        </section>
+
+        <section class="glass-card control-card">
+          <div class="rail-label">HOST CONTROLS</div>
           <button id="startBtn" class="btn btn-primary btn-block">Start Question</button>
           <button id="lockBtn" class="btn btn-blue btn-block">Lock Answers</button>
-          <button id="revealBtn" class="btn btn-blue btn-block">Reveal & Score</button>
+          <button id="revealBtn" class="btn btn-blue btn-block">Reveal + Score</button>
           <button id="nextBtn" class="btn btn-primary btn-block">Next Question</button>
           <button id="manageQuestionsBtnGame" class="btn btn-ghost btn-block">Manage Questions</button>
           <button id="resetBtn" class="btn btn-danger btn-block">Reset Game</button>
-        </div>
-        <div class="scoring-key">
-          <div><span class="score-good">+100</span><small>Correct</small></div>
-          <div><span class="score-bad">-50</span><small>Wrong</small></div>
-          <div><span class="score-bad">-50</span><small>No Answer</small></div>
-        </div>
+        </section>
+
+        <section class="scoring-strip">
+          <div><span class="plus">+100</span><small>CORRECT</small></div>
+          <div><span class="minus">-50</span><small>WRONG</small></div>
+          <div><span class="minus">-50</span><small>NO ANSWER</small></div>
+        </section>
       </aside>
 
-      <section class="game-panel host-main">
-        <div class="round-line">
-          <span id="roundText">Ready</span>
-          <span class="phase-badge" id="phaseText">WAITING</span>
+      <section class="question-arena">
+        <div class="question-topline">
+          <div id="roundText" class="question-number">READY</div>
+          <div id="phaseText" class="phase-pill">WAITING</div>
         </div>
-        <h2 id="questionText" class="question">Select Start Question.</h2>
-        <div id="choices" class="choices"></div>
 
-        <div class="answer-summary-panel">
-          <div class="summary-heading"><span>Answer Summary</span><small>Live</small></div>
+        <section class="hero-question-card">
+          <div class="hero-glow"></div>
+          <div class="question-label">CURRENT QUESTION</div>
+          <h2 id="questionText" class="question-text">Select Start Question.</h2>
+          <div id="choices" class="choice-grid"></div>
+        </section>
+
+        <section class="glass-card summary-card">
+          <div class="section-heading"><span>ANSWER SUMMARY</span><small>LIVE</small></div>
           <div id="submissions" class="answer-summary-grid"></div>
-        </div>
+        </section>
 
-        <div class="bottom-info-strip">
-          <div class="info-cell">
-            <span class="info-label">Correct Answer</span>
+        <section class="info-ticker">
+          <div class="ticker-block">
+            <div class="ticker-label">CORRECT ANSWER</div>
             <div id="correctAnswerDisplay">Hidden until reveal</div>
           </div>
-          <div class="info-cell">
-            <span class="info-label">Automatic Scoring</span>
-            <div><b class="score-good">Correct: +100</b> &nbsp; <b class="score-bad">Wrong: -50</b> &nbsp; <b class="score-bad">No Answer: -50</b></div>
+          <div class="ticker-block scoring-ticker">
+            <div class="ticker-label">AUTOMATIC SCORING</div>
+            <div><b class="plus">Correct +100</b><b class="minus">Wrong -50</b><b class="minus">No Answer -50</b></div>
           </div>
-        </div>
+        </section>
       </section>
 
-      <aside class="game-panel leaderboard host-leaderboard">
-        <div class="leaderboard-header"><h2>Leaderboard</h2><span>Live</span></div>
+      <aside class="glass-card leaderboard-card">
+        <div class="leaderboard-head"><div><div class="orange-kicker">LIVE RANKINGS</div><h2>LEADERBOARD</h2></div><span class="live-chip mini"><span class="live-dot"></span>LIVE</span></div>
         <div id="scoreboard"></div>
       </aside>
     </div>
   </section>
 </main>
 
-<div id="questionManager" class="qm-overlay hidden"><section class="qm-modal game-panel">
-<div class="qm-head"><div><div class="kicker">Instructor Tool</div><h2>Question Manager</h2><p>Build questions manually or import them from Excel/CSV.</p></div><button id="qmClose" class="qm-x">×</button></div>
+<div id="questionManager" class="qm-overlay hidden"><section class="qm-modal glass-card">
+<div class="qm-head"><div><div class="orange-kicker">INSTRUCTOR TOOL</div><h2>Question Manager</h2><p>Build questions manually or import them from Excel/CSV.</p></div><button id="qmClose" class="qm-x">×</button></div>
 <div class="qm-toolbar">
 <span id="qmCount" class="qm-count">0 Questions</span>
 <button id="qmAdd" class="btn btn-primary">+ Add Question</button>
@@ -125,17 +128,9 @@
 <div id="qmList" class="qm-list"></div>
 <div id="qmEditor" class="qm-editor hidden"><div class="qm-editor-card"><h3 id="qmEditorTitle">Add Question</h3>
 <label class="label">Question</label><textarea id="qmQuestion" class="input qm-textarea" placeholder="Type the question"></textarea>
-<div class="qm-choice-grid">
-<label>A<input id="qmChoiceA" class="input" placeholder="Answer A"></label>
-<label>B<input id="qmChoiceB" class="input" placeholder="Answer B"></label>
-<label>C<input id="qmChoiceC" class="input" placeholder="Answer C"></label>
-<label>D<input id="qmChoiceD" class="input" placeholder="Answer D"></label>
-</div>
-<div class="qm-settings">
-<label>Correct Answer<select id="qmAnswer" class="input"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select></label>
-<label>Points<input id="qmPoints" class="input" type="number" min="0" value="100"></label>
-</div>
-<div class="footer-links"><button id="qmSave" class="btn btn-primary">Save Question</button><button id="qmCancel" class="btn btn-ghost">Cancel</button></div>
+<div class="qm-choice-grid"><label>A<input id="qmChoiceA" class="input" placeholder="Answer A"></label><label>B<input id="qmChoiceB" class="input" placeholder="Answer B"></label><label>C<input id="qmChoiceC" class="input" placeholder="Answer C"></label><label>D<input id="qmChoiceD" class="input" placeholder="Answer D"></label></div>
+<div class="qm-settings"><label>Correct Answer<select id="qmAnswer" class="input"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select></label><label>Points<input id="qmPoints" class="input" type="number" min="0" value="100"></label></div>
+<div class="setup-actions"><button id="qmSave" class="btn btn-primary">Save Question</button><button id="qmCancel" class="btn btn-ghost">Cancel</button></div>
 </div></div></section></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -147,5 +142,4 @@
 <script src="question-manager.js"></script>
 <script src="effects.js"></script>
 <script src="host.js"></script>
-</body>
-</html>
+</body></html>
