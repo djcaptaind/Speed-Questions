@@ -130,3 +130,30 @@ body[data-phase="revealed"] .stadium-arena{animation:revealArena .7s ease}
 .timer-ring.timer-reset .timer-caption{color:#8dc3ff}
 .timer-ring.timer-reset .timer-caption:after{content:" • READY";color:#73b7ff}
 .timer-ring.timer-reset strong{color:#f4f9ff}
+/* ===== DISPLAY / PROJECTOR MODE ===== */
+body.display-mode .game-control-panel,
+body.display-mode .join-panel,
+body.display-mode .question-timer-panel {
+  display: none !important;
+}
+
+body.display-mode .host-layout,
+body.display-mode .game-stage {
+  grid-template-columns: 1fr !important;
+}
+
+body.display-mode .question-arena {
+  max-width: none;
+}
+
+body.display-mode .hero-question-card {
+  min-height: 52vh;
+}
+
+body.display-mode .question-text {
+  font-size: clamp(1.8rem, 4.2vw, 3.4rem) !important;
+}
+
+body.display-mode .stadium-leaderboard {
+  max-height: none;
+}
