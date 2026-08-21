@@ -92,3 +92,18 @@ This build specifically optimizes cadet answer selection:
 - Timer updates remain independent from answer rendering.
 - GOD MODE phase effects still run for countdown, lock, reveal, and champion screens.
 - Cadets can still change answers until lock/timer expiration.
+
+
+## Instructor Access Upgrade
+
+- The **Instructor Screen link has been removed from the cadet/team page**.
+- Opening `host.html` now displays an **Instructor PIN gate** before any game controls appear.
+- Default instructor PIN: **1974**
+- To change it, open `host.js` and change:
+
+  `const INSTRUCTOR_PIN = '1974';`
+
+- Unlock stays active only for the current browser tab/session. Closing the tab clears the unlocked session.
+
+### Important security note
+Because this game is hosted as a static GitHub Pages site, a PIN stored in JavaScript is a **casual-access deterrent**, not strong authentication. A technically skilled user could inspect the public source code and find the PIN. For true instructor-only security, the next step would be Firebase Authentication and security rules.

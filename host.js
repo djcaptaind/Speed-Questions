@@ -11,6 +11,57 @@
   const inappropriate = s => blocked.some(w => normalize(s).toLowerCase().replace(/[^a-z0-9]/g,'').includes(w));
   const getQuestions = () => window.GAME_QUESTIONS || [];
 
+  // Change this PIN before publishing if desired.
+  // NOTE: This is a client-side deterrent, not strong authentication.
+  const INSTRUCTOR_PIN = '1974';
+  const PIN_SESSION_KEY = 'chargersInstructorUnlocked';
+
+  function unlockHostUi() {
+    const gate = $('pinGate');
+    const shell = $('hostAppShell');
+    if (gate) gate.classList.add('hidden');
+    if (shell) shell.classList.remove('host-locked');
+    sessionStorage.setItem(PIN_SESSION_KEY, '1');
+    setTimeout(() => $('roomCode')?.focus(), 100);
+  }
+
+  function lockHostUi() {
+    const gate = $('pinGate');
+    const shell = $('hostAppShell');
+    if (gate) gate.classList.remove('hidden');
+    if (shell) shell.classList.add('host-locked');
+  }
+
+  function verifyInstructorPin() {
+    const input = $('instructorPin');
+    const error = $('pinError');
+    const value = String(input?.value || '').trim();
+    if (value === INSTRUCTOR_PIN) {
+      if (error) error.textContent = '';
+      if (input) input.value = '';
+      unlockHostUi();
+      GameFX.sounds.correct();
+      return;
+    }
+    if (error) error.textContent = 'Incorrect PIN.';
+    if (input) {
+      input.value = '';
+      input.focus();
+      input.classList.remove('pin-shake');
+      void input.offsetWidth;
+      input.classList.add('pin-shake');
+    }
+    GameFX.sounds.wrong();
+  }
+
+  if (sessionStorage.getItem(PIN_SESSION_KEY) === '1') unlockHostUi();
+  else lockHostUi();
+
+  $('unlockHostBtn')?.addEventListener('click', verifyInstructorPin);
+  $('instructorPin')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') verifyInstructorPin();
+  });
+
   function initFirebase() {
     if (!configured()) return false;
     if (!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);

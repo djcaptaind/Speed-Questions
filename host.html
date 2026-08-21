@@ -11,7 +11,21 @@
 <div id="cinematicOverlay" class="cinematic-overlay hidden" aria-live="polite"><div class="cinematic-flare"></div><img src="callaway-chargers-logo.png" class="cinematic-logo" alt=""><div id="cinematicEyebrow" class="cinematic-eyebrow">CALLAWAY JROTC</div><div id="cinematicMain" class="cinematic-main">CHARGERS CHALLENGE</div><div id="cinematicSub" class="cinematic-sub">GOD MODE</div></div>
 <div id="impactOverlay" class="impact-overlay hidden" aria-live="assertive"><div id="impactKicker" class="impact-kicker">TIME!</div><div id="impactMain" class="impact-main">ANSWERS LOCKED</div><div id="impactSub" class="impact-sub">NO ANSWER = -50</div></div>
 <div id="championOverlay" class="champion-overlay hidden" aria-live="polite"><div class="champion-rays"></div><img src="callaway-chargers-logo.png" class="champion-logo" alt=""><div class="champion-kicker">CHARGERS CHALLENGE</div><div class="champion-title">CHAMPION</div><div id="championName" class="champion-name">TEAM</div><div id="championScore" class="champion-score">0 POINTS</div><div id="podiumBoard" class="podium-board"></div></div>
-<main class="app-shell">
+
+<section id="pinGate" class="pin-gate">
+  <div class="pin-card">
+    <img src="callaway-chargers-logo.png" class="pin-logo" alt="Callaway Chargers JROTC">
+    <div class="orange-kicker">INSTRUCTOR ACCESS</div>
+    <h1>HOST CONTROL LOCKED</h1>
+    <p>Enter the instructor PIN to open the Chargers Challenge host controls.</p>
+    <label class="label" for="instructorPin">INSTRUCTOR PIN</label>
+    <input id="instructorPin" class="input pin-input" type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="Enter PIN">
+    <button id="unlockHostBtn" class="btn btn-primary pin-unlock-btn" type="button">🔐 UNLOCK HOST</button>
+    <div id="pinError" class="pin-error" aria-live="polite"></div>
+  </div>
+</section>
+
+<main id="hostAppShell" class="app-shell host-locked">
   <section id="setupView" class="setup-stage">
     <section class="setup-cinematic ultra-setup">
       <div class="setup-logo-wrap">

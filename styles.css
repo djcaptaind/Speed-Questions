@@ -156,3 +156,40 @@ body[data-phase="revealed"] .stadium-arena{animation:revealArena .7s ease}
   .scan-grid{opacity:.28}
   .choice{transition:transform .10s ease,border-color .10s ease,background .10s ease!important}
 }
+
+
+/* =========================================================
+   INSTRUCTOR PIN GATE
+   ========================================================= */
+.host-locked{display:none!important}
+.pin-gate{
+  position:fixed;inset:0;z-index:900;
+  display:grid;place-items:center;padding:20px;
+  background:
+    radial-gradient(circle at 50% 25%,rgba(29,114,216,.30),transparent 30%),
+    radial-gradient(circle at 50% 72%,rgba(255,106,0,.16),transparent 34%),
+    linear-gradient(145deg,#010713,#071a34 55%,#020914);
+}
+.pin-gate.hidden{display:none!important}
+.pin-gate:before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px),
+             linear-gradient(rgba(255,255,255,.014) 1px,transparent 1px);
+  background-size:46px 46px;
+}
+.pin-card{
+  position:relative;width:min(520px,94vw);padding:34px;
+  border:1px solid rgba(255,255,255,.14);border-top:4px solid var(--orange);
+  border-radius:26px;text-align:center;
+  background:linear-gradient(155deg,rgba(9,28,57,.98),rgba(3,13,30,.99));
+  box-shadow:0 35px 95px rgba(0,0,0,.52),0 0 60px rgba(255,106,0,.08);
+}
+.pin-logo{width:150px;filter:drop-shadow(0 18px 35px rgba(0,0,0,.48));margin-bottom:14px}
+.pin-card h1{font-family:"Arial Black",Impact,sans-serif;font-size:clamp(2rem,5vw,3.4rem);line-height:.9;letter-spacing:-.04em;margin:8px 0 12px}
+.pin-card p{color:#9db1cb;line-height:1.5;margin:0 auto 22px;max-width:420px}
+.pin-card .label{text-align:left}
+.pin-input{text-align:center;font-family:"Arial Black",Arial,sans-serif;font-size:1.7rem;letter-spacing:.24em;margin-bottom:12px}
+.pin-unlock-btn{width:100%;font-size:1rem;padding:14px}
+.pin-error{min-height:22px;margin-top:10px;color:#ff818b;font-weight:900}
+.pin-shake{animation:pinShake .36s ease}
+@keyframes pinShake{20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
