@@ -193,3 +193,8 @@ body[data-phase="revealed"] .stadium-arena{animation:revealArena .7s ease}
 .pin-error{min-height:22px;margin-top:10px;color:#ff818b;font-weight:900}
 .pin-shake{animation:pinShake .36s ease}
 @keyframes pinShake{20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+
+.connection-badge{padding:9px 12px;border-radius:999px;border:1px solid rgba(83,232,130,.28);background:rgba(50,190,94,.10);color:#72f099;font-size:.68rem;font-weight:1000;letter-spacing:.08em}
+.connection-badge.connection-offline{color:#ffaf69;border-color:rgba(255,142,66,.30);background:rgba(255,106,0,.10)}
+.preview-choice{opacity:.78!important;filter:saturate(.78)}
+body[data-firebase-connected="false"] .player-status:before{content:"RECONNECTING TO LIVE GAME • ";color:#ffad68;font-weight:1000}

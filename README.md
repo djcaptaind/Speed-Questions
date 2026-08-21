@@ -107,3 +107,9 @@ This build specifically optimizes cadet answer selection:
 
 ### Important security note
 Because this game is hosted as a static GitHub Pages site, a PIN stored in JavaScript is a **casual-access deterrent**, not strong authentication. A technically skilled user could inspect the public source code and find the PIN. For true instructor-only security, the next step would be Firebase Authentication and security rules.
+
+## Phone Question Sync Fix
+- Host publishes the actual question to Firebase before the 3–2–1 countdown.
+- Phones preview the question during countdown, then answers enable at GO.
+- Backup listeners watch currentQuestion and phase.
+- LIVE / RECONNECTING badge shows Firebase status.

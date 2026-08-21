@@ -56,6 +56,15 @@
     if (!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
     db = firebase.database();
     db.ref('.info/serverTimeOffset').on('value', snap => { serverTimeOffset = Number(snap.val() || 0); });
+    db.ref('.info/connected').on('value', snap => {
+      const connected = snap.val() === true;
+      document.body.dataset.firebaseConnected = connected ? 'true' : 'false';
+      const badge = $('connectionBadge');
+      if (badge) {
+        badge.textContent = connected ? '● LIVE' : '● RECONNECTING';
+        badge.classList.toggle('connection-offline', !connected);
+      }
+    });
     return true;
   }
 
@@ -95,6 +104,7 @@
     GameFX.addSoundToggle();
     GameFX.sounds.join();
     listen();
+    attachCriticalStateListeners();
   });
 
   function listen() {
@@ -108,7 +118,9 @@
       if (oldIndex !== null && currentState.questionIndex !== oldIndex) selected = null;
 
       const q = currentState.currentQuestion;
-      const questionKey = q ? `${currentState.questionIndex}:${q.question}` : `${currentState.phase}:none`;
+      const questionKey = q
+        ? `${currentState.questionIndex}:${currentState.questionVersion || ''}:${q.question}:${(q.choices || []).join('~')}`
+        : `${currentState.phase}:none`;
       const phaseChanged = (currentState.phase || 'waiting') !== lastRenderedPhase;
       const questionChanged = questionKey !== lastRenderedQuestionKey;
 
@@ -162,6 +174,27 @@
       }
       previousPhase = currentState.phase || 'waiting';
       previousQuestionIndex = currentState.questionIndex ?? null;
+    });
+  }
+
+  function attachCriticalStateListeners() {
+    if (!roomRef) return;
+    roomRef.child('currentQuestion').on('value', snap => {
+      const q = snap.val();
+      if (!q || !currentState) return;
+      currentState.currentQuestion = q;
+      const key = `${currentState.questionIndex || 0}:${currentState.questionVersion || ''}:${q.question}:${(q.choices || []).join('~')}`;
+      if (key !== lastRenderedQuestionKey) {
+        renderQuestion(currentState);
+        lastRenderedQuestionKey = key;
+      }
+    });
+    roomRef.child('phase').on('value', snap => {
+      const phase = snap.val();
+      if (!phase || !currentState || phase === currentState.phase) return;
+      currentState.phase = phase;
+      renderQuestion(currentState);
+      lastRenderedPhase = phase;
     });
   }
 
@@ -220,7 +253,22 @@
     if ($('teamPhasePill')) $('teamPhasePill').textContent = phase.toUpperCase();
     updateTeamTimer();
 
-    if (phase === 'countdown') { $('roundText').textContent=`Question ${(state.countdownTargetIndex??0)+1} incoming`; $('questionText').textContent='Get ready...'; $('choices').innerHTML=''; $('answerState').textContent='Countdown'; $('statusMessage').textContent='Question begins when the countdown reaches GO.'; updateTeamTimer(); return; }
+    if (phase === 'countdown') {
+      $('roundText').textContent = `Question ${(state.countdownTargetIndex ?? state.questionIndex ?? 0) + 1} incoming`;
+      $('answerState').textContent = 'Countdown';
+      $('statusMessage').textContent = 'Get ready. Answers open at GO.';
+      if (q) {
+        $('questionText').textContent = q.question;
+        $('choices').innerHTML = q.choices.map((choice, i) =>
+          `<button class="choice preview-choice" data-choice="${i}" disabled><span class="choice-letter">${String.fromCharCode(65+i)}</span>${escapeHtml(choice)}</button>`
+        ).join('');
+      } else {
+        $('questionText').textContent = 'Question loading...';
+        $('choices').innerHTML = '';
+      }
+      updateTeamTimer();
+      return;
+    }
     if (phase === 'reveal_countdown') { $('answerState').textContent='Reveal Countdown'; $('statusMessage').textContent='Answers are locked. Correct answer incoming...'; }
     if (!q) {
       $('roundText').textContent = phase === 'complete' ? 'FINAL RESULTS' : 'Waiting for host...';

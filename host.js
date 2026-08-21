@@ -248,7 +248,56 @@
   function showImpact(k='TIME!',m='ANSWERS LOCKED',s='WAIT FOR THE REVEAL'){const el=$('impactOverlay');if(!el)return;$('impactKicker').textContent=k;$('impactMain').textContent=m;$('impactSub').textContent=s;el.classList.remove('hidden');void el.offsetWidth;el.classList.add('impact-live');setTimeout(()=>{el.classList.add('hidden');el.classList.remove('impact-live')},1400)}
   function podiumHtml(t={}){const a=Object.entries(t).sort((x,y)=>(y[1].score||0)-(x[1].score||0)).slice(0,3),m=['🥇','🥈','🥉'];return a.map(([id,v],i)=>`<div class="podium-place place-${i+1}"><span>${m[i]}</span><strong>${esc(v.name||id)}</strong><b>${v.score||0}</b></div>`).join('')}
   function showChampion(t={}){const a=Object.entries(t).sort((x,y)=>(y[1].score||0)-(x[1].score||0));if(!a.length)return;const[id,v]=a[0];$('championName').textContent=v.name||id;$('championScore').textContent=`${v.score||0} POINTS`;$('podiumBoard').innerHTML=podiumHtml(t);$('championOverlay').classList.remove('hidden');GameFX.burst($('championOverlay'),60);GameFX.sounds.correct()}
-  async function countdownToQuestion(index){const qs=getQuestions();if(!qs[index])return;const teams=state.teams||{},eligibleTeams=Object.fromEntries(Object.keys(teams).map(id=>[id,true]));await roomRef.update({phase:'countdown',countdownTargetIndex:index,countdownEndAt:Date.now()+3000,eligibleTeams,answers:null,scored:false,message:''});for(const n of ['3','2','1']){showCinematic(`QUESTION ${index+1}`,n,'GET READY','countdown');GameFX.sounds.lock();await sleep(700)}showCinematic(`QUESTION ${index+1}`,'GO!','ANSWERS OPEN','go');GameFX.sounds.correct();await sleep(450);hideCinematic();await loadQuestion(index,'open')}
+  async function countdownToQuestion(index) {
+    const questions = getQuestions();
+    const q = questions[index];
+    if (!q || !roomRef) return;
+
+    const teams = state.teams || {};
+    const eligibleTeams = Object.fromEntries(Object.keys(teams).map(id => [id, true]));
+    saveTimerSettings();
+    const { enabled: timerEnabled, seconds: timerDuration } = timerSettings();
+
+    await roomRef.update({
+      questionIndex: index,
+      currentQuestion: q,
+      phase: 'countdown',
+      countdownTargetIndex: index,
+      countdownEndAt: Date.now() + serverTimeOffset + 3000,
+      answers: null,
+      scored: false,
+      eligibleTeams,
+      message: '',
+      timerEnabled,
+      timerDuration,
+      timerRunning: false,
+      timerEndAt: null,
+      timerPausedRemaining: timerEnabled ? timerDuration * 1000 : null,
+      timerLockedReason: null,
+      questionVersion: Date.now(),
+      fastestCorrectName: null
+    });
+
+    for (const n of ['3','2','1']) {
+      showCinematic(`QUESTION ${index+1}`, n, 'GET READY', 'countdown');
+      GameFX.sounds.lock();
+      await sleep(700);
+    }
+    showCinematic(`QUESTION ${index+1}`, 'GO!', 'ANSWERS OPEN', 'go');
+    GameFX.sounds.correct();
+    await sleep(450);
+    hideCinematic();
+
+    const endAt = timerEnabled ? Date.now() + serverTimeOffset + timerDuration * 1000 : null;
+    await roomRef.update({
+      phase: 'open',
+      timerRunning: timerEnabled,
+      timerEndAt: endAt,
+      timerPausedRemaining: timerEnabled ? null : timerDuration * 1000,
+      timerLockedReason: null,
+      openedAt: Date.now() + serverTimeOffset
+    });
+  }
   async function revealSequence(){if(!roomRef||!state.currentQuestion||state.phase==='reveal_countdown')return;await roomRef.update({phase:'reveal_countdown',timerRunning:false,timerEndAt:null,revealEndAt:Date.now()+2400});for(const n of ['3','2','1']){showCinematic('ANSWER REVEAL',n,'LOCKED IN','reveal');GameFX.sounds.lock();await sleep(600)}showCinematic('ANSWER REVEAL','REVEAL!','SCORE IMPACT','go');GameFX.sounds.correct();await sleep(400);hideCinematic();await scoreAndReveal()}
   function renderJoinQr() {
     const join = new URL('index.html', window.location.href);
