@@ -3,6 +3,17 @@
   let db, roomRef, roomCode, teamId, teamName, currentState = null, selected = null, previousPhase = null, previousQuestionIndex = null, previousMyScore = null;
   let timerInterval = null, serverTimeOffset = 0;
 
+  // GOD MODE / PERFORMANCE runtime state.
+  // These MUST be declared before the Firebase room listener runs.
+  let previousCinematicKey = '';
+  let lastRenderedQuestionKey = '';
+  let lastRenderedPhase = '';
+  let lastTeamsSignature = '';
+  let answerWriteTimer = null;
+  let answerWriteInFlight = false;
+  let queuedChoice = null;
+  const ANSWER_WRITE_DEBOUNCE_MS = 90;
+
   const BLOCKED_WORDS = ['fuck','shit','bitch','asshole','nigger','nigga','cunt','dick','pussy'];
   function configured() { return window.FIREBASE_CONFIG && !String(window.FIREBASE_CONFIG.apiKey).startsWith('PASTE_'); }
   function normalizeName(s='') { return s.trim().replace(/\s+/g,' '); }
@@ -110,10 +121,23 @@
   function listen() {
     roomRef.on('value', snap => {
       const nextState = snap.val() || {};
+      const badge = $('connectionBadge');
+      if (badge) {
+        badge.textContent = '● LIVE';
+        badge.classList.remove('connection-offline');
+      }
       const oldPhase = previousPhase;
       const oldIndex = previousQuestionIndex;
       currentState = nextState;
-      syncCinematic(currentState);
+
+      // Visual effects are non-critical. Never allow an animation failure to stop
+      // the Firebase question/phase listener from updating the cadet screen.
+      try {
+        syncCinematic(currentState);
+      } catch (fxError) {
+        console.warn('Cinematic effect skipped:', fxError);
+        hideCinematic();
+      }
 
       if (oldIndex !== null && currentState.questionIndex !== oldIndex) selected = null;
 
