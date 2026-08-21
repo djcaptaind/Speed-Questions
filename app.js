@@ -46,6 +46,11 @@
 
   timerInterval = setInterval(updateTeamTimer, 200);
 
+  function showCinematic(eyebrow,main,sub,mode='countdown'){const el=$('cinematicOverlay');if(!el)return;$('cinematicEyebrow').textContent=eyebrow;$('cinematicMain').textContent=main;$('cinematicSub').textContent=sub;el.className=`cinematic-overlay mode-${mode} cinematic-live`;el.classList.remove('hidden')}
+  function hideCinematic(){const el=$('cinematicOverlay');if(el)el.classList.add('hidden')}
+  function showImpact(k='TIME!',m='ANSWERS LOCKED',s='WAIT FOR THE REVEAL'){const el=$('impactOverlay');if(!el)return;$('impactKicker').textContent=k;$('impactMain').textContent=m;$('impactSub').textContent=s;el.classList.remove('hidden');setTimeout(()=>el.classList.add('hidden'),1400)}
+  function showChampion(t={}){const a=Object.entries(t).sort((x,y)=>(y[1].score||0)-(x[1].score||0)).slice(0,3);if(!a.length)return;const[id,v]=a[0],m=['🥇','🥈','🥉'];$('championName').textContent=v.name||id;$('championScore').textContent=`${v.score||0} POINTS`;$('podiumBoard').innerHTML=a.map(([i,x],n)=>`<div class="podium-place place-${n+1}"><span>${m[n]}</span><strong>${escapeHtml(x.name||i)}</strong><b>${x.score||0}</b></div>`).join('');$('championOverlay').classList.remove('hidden');GameFX.burst($('championOverlay'),50)}
+  function syncCinematic(s){const p=s.phase||'waiting';if(p==='countdown'&&s.countdownEndAt){const rem=Math.max(0,Number(s.countdownEndAt)-Date.now()),n=Math.max(1,Math.min(3,Math.ceil(rem/700))),k=`c:${s.countdownTargetIndex}:${n}`;if(k!==previousCinematicKey){previousCinematicKey=k;showCinematic(`QUESTION ${(s.countdownTargetIndex||0)+1}`,String(n),'GET READY','countdown')}return}if(p==='reveal_countdown'&&s.revealEndAt){const rem=Math.max(0,Number(s.revealEndAt)-Date.now()),n=Math.max(1,Math.min(3,Math.ceil(rem/600))),k=`r:${s.questionIndex}:${n}`;if(k!==previousCinematicKey){previousCinematicKey=k;showCinematic('ANSWER REVEAL',String(n),'LOCKED IN','reveal')}return}if(p==='complete'){hideCinematic();showChampion(s.teams||{});return}if(previousCinematicKey&&!['countdown','reveal_countdown'].includes(p)){previousCinematicKey='';hideCinematic()}}
   function initFirebase() {
     if (!configured()) return false;
     if (!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
@@ -98,6 +103,7 @@
       const oldPhase = previousPhase;
       const oldIndex = previousQuestionIndex;
       currentState = nextState;
+      syncCinematic(currentState);
 
       if (oldIndex !== null && currentState.questionIndex !== oldIndex) selected = null;
 
@@ -109,7 +115,7 @@
         GameFX.pulse($('questionText'));
       }
 
-      if (oldPhase && oldPhase !== currentState.phase && currentState.phase === 'locked') GameFX.sounds.lock();
+      if (oldPhase && oldPhase !== currentState.phase && currentState.phase === 'locked') { GameFX.sounds.lock(); showImpact(currentState.timerLockedReason==='timer'?'TIME!':'LOCKED!','ANSWERS LOCKED','WAIT FOR THE REVEAL'); }
       if (oldPhase && oldPhase !== currentState.phase && currentState.phase === 'revealed') {
         const myAnswer = currentState.answers?.[teamId]?.choice;
         const q = currentState.currentQuestion;
@@ -140,8 +146,10 @@
     if ($('teamPhasePill')) $('teamPhasePill').textContent = phase.toUpperCase();
     updateTeamTimer();
 
+    if (phase === 'countdown') { $('roundText').textContent=`Question ${(state.countdownTargetIndex??0)+1} incoming`; $('questionText').textContent='Get ready...'; $('choices').innerHTML=''; $('answerState').textContent='Countdown'; $('statusMessage').textContent='Question begins when the countdown reaches GO.'; updateTeamTimer(); return; }
+    if (phase === 'reveal_countdown') { $('answerState').textContent='Reveal Countdown'; $('statusMessage').textContent='Answers are locked. Correct answer incoming...'; }
     if (!q) {
-      $('roundText').textContent = 'Waiting for host...';
+      $('roundText').textContent = phase === 'complete' ? 'FINAL RESULTS' : 'Waiting for host...';
       $('questionText').textContent = state.message || 'The instructor will start the first question.';
       $('choices').innerHTML = '';
       $('answerState').textContent = '';

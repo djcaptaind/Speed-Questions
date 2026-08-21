@@ -65,3 +65,15 @@ The timer now follows the host controls automatically:
 Example: if the timer is set to **30 seconds**, Reveal + Score resets the display to **30**, and Next Question immediately begins counting down from **30** again.
 
 The host can still pause/resume, add +5 seconds, change the duration, or turn the timer off.
+
+
+# GOD MODE
+- Cinematic intro
+- Synchronized 3-2-1 GO before every question
+- Adjustable timer starts after GO
+- TIME / ANSWERS LOCKED takeover
+- 3-2-1 reveal countdown
+- Fastest correct team
+- Correct-answer streaks
+- Champion ceremony with podium/confetti
+- Full screen, Firebase, CSV imports, +100/-50/-50 retained

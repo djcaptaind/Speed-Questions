@@ -190,6 +190,15 @@
   if ($('applyTimerBtn')) $('applyTimerBtn').onclick = applyTimerToCurrent;
   timerInterval = setInterval(updateHostTimer, 200);
 
+  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+  function showCinematic(eyebrow,main,sub,mode='intro'){const el=$('cinematicOverlay');if(!el)return;$('cinematicEyebrow').textContent=eyebrow;$('cinematicMain').textContent=main;$('cinematicSub').textContent=sub;el.className=`cinematic-overlay mode-${mode} cinematic-live`;el.classList.remove('hidden')}
+  function hideCinematic(){const el=$('cinematicOverlay');if(el)el.classList.add('hidden')}
+  async function playIntro(){showCinematic('CALLAWAY JROTC PRESENTS','CHARGERS CHALLENGE','GOD MODE','intro');GameFX.sounds.open();await sleep(1700);hideCinematic()}
+  function showImpact(k='TIME!',m='ANSWERS LOCKED',s='WAIT FOR THE REVEAL'){const el=$('impactOverlay');if(!el)return;$('impactKicker').textContent=k;$('impactMain').textContent=m;$('impactSub').textContent=s;el.classList.remove('hidden');void el.offsetWidth;el.classList.add('impact-live');setTimeout(()=>{el.classList.add('hidden');el.classList.remove('impact-live')},1400)}
+  function podiumHtml(t={}){const a=Object.entries(t).sort((x,y)=>(y[1].score||0)-(x[1].score||0)).slice(0,3),m=['🥇','🥈','🥉'];return a.map(([id,v],i)=>`<div class="podium-place place-${i+1}"><span>${m[i]}</span><strong>${esc(v.name||id)}</strong><b>${v.score||0}</b></div>`).join('')}
+  function showChampion(t={}){const a=Object.entries(t).sort((x,y)=>(y[1].score||0)-(x[1].score||0));if(!a.length)return;const[id,v]=a[0];$('championName').textContent=v.name||id;$('championScore').textContent=`${v.score||0} POINTS`;$('podiumBoard').innerHTML=podiumHtml(t);$('championOverlay').classList.remove('hidden');GameFX.burst($('championOverlay'),60);GameFX.sounds.correct()}
+  async function countdownToQuestion(index){const qs=getQuestions();if(!qs[index])return;const teams=state.teams||{},eligibleTeams=Object.fromEntries(Object.keys(teams).map(id=>[id,true]));await roomRef.update({phase:'countdown',countdownTargetIndex:index,countdownEndAt:Date.now()+3000,eligibleTeams,answers:null,scored:false,message:''});for(const n of ['3','2','1']){showCinematic(`QUESTION ${index+1}`,n,'GET READY','countdown');GameFX.sounds.lock();await sleep(700)}showCinematic(`QUESTION ${index+1}`,'GO!','ANSWERS OPEN','go');GameFX.sounds.correct();await sleep(450);hideCinematic();await loadQuestion(index,'open')}
+  async function revealSequence(){if(!roomRef||!state.currentQuestion||state.phase==='reveal_countdown')return;await roomRef.update({phase:'reveal_countdown',timerRunning:false,timerEndAt:null,revealEndAt:Date.now()+2400});for(const n of ['3','2','1']){showCinematic('ANSWER REVEAL',n,'LOCKED IN','reveal');GameFX.sounds.lock();await sleep(600)}showCinematic('ANSWER REVEAL','REVEAL!','SCORE IMPACT','go');GameFX.sounds.correct();await sleep(400);hideCinematic();await scoreAndReveal()}
   function renderJoinQr() {
     const join = new URL('index.html', window.location.href);
     join.searchParams.set('room', roomCode);
@@ -226,6 +235,7 @@
       GameFX.addSoundToggle();
       GameFX.sounds.join();
       listen();
+      setTimeout(playIntro,250);
     } catch (e) {
       $('setupError').textContent = 'Could not open room: ' + (e.message || e);
     }
@@ -242,8 +252,9 @@
         GameFX.sounds.open();
         GameFX.pulse($('questionText'));
       }
-      if (oldPhase && oldPhase !== state.phase && state.phase === 'locked') GameFX.sounds.lock();
+      if (oldPhase && oldPhase !== state.phase && state.phase === 'locked') { GameFX.sounds.lock(); const k=`${questionIndex}:${state.timerLockedReason||'manual'}`; if(k!==lastImpactKey){lastImpactKey=k;showImpact(state.timerLockedReason==='timer'?'TIME!':'LOCKED!','ANSWERS LOCKED','WAIT FOR THE REVEAL')} }
       if (oldPhase && oldPhase !== state.phase && state.phase === 'revealed') GameFX.sounds.correct();
+      if (state.phase === 'complete') showChampion(state.teams || {});
       previousPhase = state.phase || 'waiting';
       previousIndex = questionIndex;
     });
@@ -265,7 +276,7 @@
     if ($('submissionTotal')) $('submissionTotal').textContent = totalEligible;
     if ($('submissionBar')) $('submissionBar').style.width = totalEligible ? `${Math.round((answerCount/totalEligible)*100)}%` : '0%';
     $('roundText').textContent = q ? `Question ${questionIndex + 1} of ${getQuestions().length}` : 'Ready';
-    $('phaseText').textContent = (state.phase || 'waiting').toUpperCase();
+    $('phaseText').textContent = (state.phase || 'waiting').replace('_',' ').toUpperCase();
     $('questionText').textContent = q?.question || 'Select Start Question.';
 
     if (q) {
@@ -285,7 +296,8 @@
     $('lockBtn').disabled = state.phase !== 'open';
     $('revealBtn').disabled = !['open','locked'].includes(state.phase);
     $('nextBtn').disabled = state.phase !== 'revealed';
-    $('startBtn').disabled = !!q && state.phase !== 'waiting';
+    $('startBtn').disabled = !!q || state.phase !== 'waiting';
+    if ($('fastestCorrect')) $('fastestCorrect').textContent = state.fastestCorrectName ? `FASTEST CORRECT: ${state.fastestCorrectName}` : 'FASTEST CORRECT: —';
 
     renderSubmissions();
     renderScores();
@@ -322,7 +334,7 @@
       return `<div class="host-team-row rank-${idx+1}">
         <div class="leader-main">
           <span class="rank-badge">${medal}</span>
-          <div class="leader-copy"><strong>${esc(t.name || id)}</strong><span class="leader-delta ${delta>0?'score-up':delta<0?'score-down':''}">${delta>0?`+${delta}`:delta<0?`${delta}`:'LIVE SCORE'}</span></div>
+          <div class="leader-copy"><strong>${esc(t.name || id)}</strong><span class="leader-delta ${delta>0?'score-up':delta<0?'score-down':''}">${delta>0?`+${delta}`:delta<0?`${delta}`:'LIVE SCORE'}${Number(t.streak||0)>=2?` • 🔥 ${t.streak} STREAK`:''}</span></div>
           <span class="leader-score ${score>0?'score-good':score<0?'score-bad':''}">${score}</span>
         </div>
         <div class="adjust">
@@ -365,20 +377,14 @@
     });
   }
 
-  $('startBtn').onclick = async () => {
-    await loadQuestion(questionIndex, 'open');
-    $('joinPanel').classList.add('hidden');
-  };
+  $('startBtn').onclick = async () => { $('joinPanel').classList.add('hidden'); await countdownToQuestion(questionIndex); };
   $('lockBtn').onclick = () => lockAnswers('manual');
   $('nextBtn').onclick = async () => {
     const next = questionIndex + 1;
-    if (next >= getQuestions().length) {
-      return roomRef.update({ phase: 'waiting', currentQuestion: null, answers: null, timerRunning: false, timerEndAt: null, timerPausedRemaining: null, message: 'Game complete! Final scores are on the board.' });
-    }
-    // Opening the next question automatically starts a fresh countdown.
-    await loadQuestion(next, 'open');
+    if (next >= getQuestions().length) { await roomRef.update({phase:'complete',currentQuestion:null,answers:null,timerRunning:false,timerEndAt:null,timerPausedRemaining:null,message:'Game complete!'}); return showChampion((await roomRef.once('value')).val()?.teams||{}); }
+    await countdownToQuestion(next);
   };
-  $('revealBtn').onclick = scoreAndReveal;
+  $('revealBtn').onclick = revealSequence;
 
   async function scoreAndReveal() {
     const snap = await roomRef.once('value');
@@ -401,21 +407,10 @@
     const answers = s.answers || {};
     const eligibleTeams = s.eligibleTeams || Object.fromEntries(Object.keys(teams).map(id => [id, true]));
     const q = s.currentQuestion;
-    const updates = {
-      phase: 'revealed',
-      scored: true,
-      timerRunning: false,
-      timerEndAt: null,
-      timerPausedRemaining: s.timerEnabled ? resetMs : null,
-      timerLockedReason: null
-    };
-
-    Object.entries(eligibleTeams).forEach(([id, active]) => {
-      if (!active || !teams[id]) return;
-      const answer = answers[id];
-      const delta = !answer ? -50 : (answer.choice === q.answer ? (q.points || 100) : -50);
-      updates[`teams/${id}/score`] = (teams[id].score || 0) + delta;
-    });
+    const correctEntries=Object.entries(eligibleTeams).filter(([id,a])=>a&&teams[id]&&answers[id]&&answers[id].choice===q.answer).map(([id])=>({id,submittedAt:Number(answers[id].submittedAt||0)})).filter(x=>x.submittedAt>0).sort((a,b)=>a.submittedAt-b.submittedAt);
+    const fastest=correctEntries[0]||null, fastestName=fastest?(teams[fastest.id]?.name||fastest.id):null;
+    const updates={phase:'revealed',scored:true,timerRunning:false,timerEndAt:null,timerPausedRemaining:s.timerEnabled?resetMs:null,timerLockedReason:null,fastestCorrectName:fastestName};
+    Object.entries(eligibleTeams).forEach(([id,active])=>{if(!active||!teams[id])return;const answer=answers[id],correct=!!answer&&answer.choice===q.answer,delta=!answer?-50:(correct?(q.points||100):-50),streak=correct?Number(teams[id].streak||0)+1:0;updates[`teams/${id}/score`]=(teams[id].score||0)+delta;updates[`teams/${id}/streak`]=streak;updates[`teams/${id}/bestStreak`]=Math.max(Number(teams[id].bestStreak||0),streak);updates[`teams/${id}/lastDelta`]=delta;updates[`teams/${id}/lastResult`]=!answer?'NO ANSWER':(correct?'CORRECT':'WRONG')});
 
     await roomRef.update(updates);
     if (Object.keys(eligibleTeams).length) setTimeout(() => GameFX.burst(document.querySelector('.stadium-leaderboard'), 28), 180);

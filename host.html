@@ -8,6 +8,9 @@
 </head>
 <body class="host-page" data-phase="waiting">
 <div class="ambient-orb orb-one"></div><div class="ambient-orb orb-two"></div><div class="scan-grid"></div>
+<div id="cinematicOverlay" class="cinematic-overlay hidden" aria-live="polite"><div class="cinematic-flare"></div><img src="callaway-chargers-logo.png" class="cinematic-logo" alt=""><div id="cinematicEyebrow" class="cinematic-eyebrow">CALLAWAY JROTC</div><div id="cinematicMain" class="cinematic-main">CHARGERS CHALLENGE</div><div id="cinematicSub" class="cinematic-sub">GOD MODE</div></div>
+<div id="impactOverlay" class="impact-overlay hidden" aria-live="assertive"><div id="impactKicker" class="impact-kicker">TIME!</div><div id="impactMain" class="impact-main">ANSWERS LOCKED</div><div id="impactSub" class="impact-sub">NO ANSWER = -50</div></div>
+<div id="championOverlay" class="champion-overlay hidden" aria-live="polite"><div class="champion-rays"></div><img src="callaway-chargers-logo.png" class="champion-logo" alt=""><div class="champion-kicker">CHARGERS CHALLENGE</div><div class="champion-title">CHAMPION</div><div id="championName" class="champion-name">TEAM</div><div id="championScore" class="champion-score">0 POINTS</div><div id="podiumBoard" class="podium-board"></div></div>
 <main class="app-shell">
   <section id="setupView" class="setup-stage">
     <section class="setup-cinematic ultra-setup">
@@ -44,7 +47,7 @@
         <div>
           <div class="orange-kicker">CALLAWAY COMMAND SPORTS NETWORK</div>
           <div class="brand-title">CHARGERS CHALLENGE</div>
-          <div class="brand-sub"><span class="live-dot"></span> LIVE CLASSROOM COMPETITION</div>
+          <div class="brand-sub"><span class="live-dot"></span> LIVE CLASSROOM COMPETITION <span class="god-badge">GOD MODE</span></div>
         </div>
       </div>
       <div class="broadcast-meta">
@@ -141,7 +144,7 @@
           </div>
           <div class="ticker-block scoring-ticker">
             <div class="ticker-label">AUTOMATIC SCORING</div>
-            <div><b class="plus">+100 CORRECT</b><b class="minus">-50 WRONG</b><b class="minus">-50 NO ANSWER</b></div>
+            <div><b class="plus">+100 CORRECT</b><b class="minus">-50 WRONG</b><b class="minus">-50 NO ANSWER</b></div><div id="fastestCorrect" class="fastest-correct">FASTEST CORRECT: —</div>
           </div>
         </section>
       </section>
