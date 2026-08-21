@@ -77,3 +77,18 @@ The host can still pause/resume, add +5 seconds, change the duration, or turn th
 - Correct-answer streaks
 - Champion ceremony with podium/confetti
 - Full screen, Firebase, CSV imports, +100/-50/-50 retained
+
+
+## GOD MODE Performance Edition
+
+This build specifically optimizes cadet answer selection:
+
+- Answer buttons respond **immediately on the phone** without waiting for Firebase.
+- Rapid answer changes are **debounced** so only the newest selection is sent.
+- Firebase writes update only that team's `answers/<teamId>` record.
+- Answer-only Firebase updates **do not rebuild the question or A/B/C/D buttons**.
+- The question animation no longer restarts when another team submits.
+- The scoreboard only rebuilds when a team score/name/streak actually changes.
+- Timer updates remain independent from answer rendering.
+- GOD MODE phase effects still run for countdown, lock, reveal, and champion screens.
+- Cadets can still change answers until lock/timer expiration.

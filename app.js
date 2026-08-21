@@ -107,8 +107,30 @@
 
       if (oldIndex !== null && currentState.questionIndex !== oldIndex) selected = null;
 
-      renderQuestion(currentState);
-      renderScores(currentState.teams || {});
+      const q = currentState.currentQuestion;
+      const questionKey = q ? `${currentState.questionIndex}:${q.question}` : `${currentState.phase}:none`;
+      const phaseChanged = (currentState.phase || 'waiting') !== lastRenderedPhase;
+      const questionChanged = questionKey !== lastRenderedQuestionKey;
+
+      // PERFORMANCE MODE:
+      // Answer writes arrive through the room listener too. Do not rebuild all A/B/C/D
+      // buttons for those answer-only updates. Re-render only on a question/phase change.
+      if (questionChanged || phaseChanged) {
+        renderQuestion(currentState);
+        lastRenderedQuestionKey = questionKey;
+        lastRenderedPhase = currentState.phase || 'waiting';
+      } else {
+        syncMySelectionFromState(currentState);
+        updateTeamTimer();
+      }
+
+      const teamsSignature = Object.entries(currentState.teams || {})
+        .map(([id,t]) => `${id}:${t.score||0}:${t.streak||0}:${t.name||''}`)
+        .sort().join('|');
+      if (teamsSignature !== lastTeamsSignature) {
+        renderScores(currentState.teams || {});
+        lastTeamsSignature = teamsSignature;
+      }
 
       if (oldIndex !== null && currentState.questionIndex !== oldIndex && currentState.currentQuestion) {
         GameFX.sounds.open();
@@ -133,9 +155,61 @@
           }
         }
       }
+      if (oldPhase === 'open' && currentState.phase !== 'open') {
+        clearTimeout(answerWriteTimer);
+        // Any selection already sent remains authoritative. Stop queued post-lock writes.
+        queuedChoice = null;
+      }
       previousPhase = currentState.phase || 'waiting';
       previousQuestionIndex = currentState.questionIndex ?? null;
     });
+  }
+
+  function paintSelectedChoice(choice) {
+    document.querySelectorAll('[data-choice]').forEach(btn => {
+      btn.classList.toggle('selected', Number(btn.dataset.choice) === choice);
+    });
+  }
+
+  function syncMySelectionFromState(state) {
+    if (!state || !teamId) return;
+    const serverChoice = state.answers?.[teamId]?.choice;
+    // Do not let an older Firebase echo visually overwrite a newer local tap.
+    if (queuedChoice !== null || answerWriteInFlight) return;
+    if (serverChoice !== undefined && serverChoice !== selected) {
+      selected = serverChoice;
+      paintSelectedChoice(selected);
+    }
+  }
+
+  async function flushQueuedAnswer() {
+    if (answerWriteInFlight || queuedChoice === null || !roomRef || !teamId) return;
+    if (!currentState || currentState.phase !== 'open') {
+      queuedChoice = null;
+      return;
+    }
+
+    const choiceToWrite = queuedChoice;
+    queuedChoice = null;
+    answerWriteInFlight = true;
+    try {
+      // Write only this team's answer node. This is the smallest possible Firebase update.
+      await roomRef.child('answers/' + teamId).set({
+        choice: choiceToWrite,
+        submittedAt: Date.now(),
+        teamName
+      });
+    } catch (err) {
+      console.error('Answer write failed:', err);
+      $('statusMessage').textContent = 'Connection issue — tap your answer again.';
+    } finally {
+      answerWriteInFlight = false;
+      // If the cadet changed again while the previous write was traveling, send only the newest choice.
+      if (queuedChoice !== null && currentState?.phase === 'open') {
+        clearTimeout(answerWriteTimer);
+        answerWriteTimer = setTimeout(flushQueuedAnswer, 35);
+      }
+    }
   }
 
   function renderQuestion(state) {
@@ -161,9 +235,11 @@
 
     $('roundText').textContent = `Question ${(state.questionIndex ?? 0) + 1}`;
     $('questionText').textContent = q.question;
-    $('questionText').classList.remove('question-enter');
-    void $('questionText').offsetWidth;
-    $('questionText').classList.add('question-enter');
+    if (`${state.questionIndex}:${q.question}` !== lastRenderedQuestionKey) {
+      $('questionText').classList.remove('question-enter');
+      void $('questionText').offsetWidth;
+      $('questionText').classList.add('question-enter');
+    }
 
     $('answerState').textContent =
       phase === 'open' ? 'Answers Open' :
@@ -200,11 +276,18 @@
     }
   }
 
-  async function submitOrChangeAnswer(choice) {
+  function submitOrChangeAnswer(choice) {
     if (!currentState || currentState.phase !== 'open') return;
+
+    // OPTIMISTIC UI: selection changes instantly; never wait on the network to paint the button.
     selected = choice;
-    await roomRef.child('answers/' + teamId).set({ choice, submittedAt: Date.now(), teamName });
+    paintSelectedChoice(choice);
     $('statusMessage').textContent = `Selected ${String.fromCharCode(65 + choice)}. You may change your answer until the timer ends or the instructor locks answers.`;
+
+    // Keep only the cadet's newest rapid selection and send it after a tiny debounce.
+    queuedChoice = choice;
+    clearTimeout(answerWriteTimer);
+    answerWriteTimer = setTimeout(flushQueuedAnswer, ANSWER_WRITE_DEBOUNCE_MS);
   }
 
   function renderScores(teams) {
