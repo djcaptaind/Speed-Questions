@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Team | Chargers Challenge Stadium Edition</title>
-  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="styles.css?v=MASTERFINAL0821"/>
 </head>
 <body class="team-page" data-phase="waiting">
 <div class="ambient-orb orb-one"></div><div class="ambient-orb orb-two"></div><div class="scan-grid"></div>
@@ -20,13 +20,25 @@
         <div class="setup-broadcast-tag"><span></span> TEAM ENTRY</div>
       </div>
       <div class="setup-copy">
-        <div class="orange-kicker">CALLAWAY JROTC • CHARGERS CHALLENGE</div>
+        <div class="orange-kicker">CALLAWAY JROTC • CHARGERS CHALLENGE <span id="teamBuildVersion" class="master-build-badge">MASTER FINAL</span></div>
+        <div id="qrRoomNotice" class="qr-room-notice hidden"></div>
         <h1>ENTER<br><span>THE ARENA</span></h1>
-        <p class="setup-sub">Choose your team name. Answer fast. Change your answer until the host locks.</p>
+        <p id="joinSubtitle" class="setup-sub">Choose your team name. Answer fast. Change your answer until the host locks.</p>
         <div class="setup-rule"></div>
         <div class="join-fields">
           <div><label class="label" for="roomCode">ROOM CODE</label><input id="roomCode" class="input cinematic-input" placeholder="Example: CHARGE"></div>
           <div><label class="label" for="teamName">TEAM NAME</label><input id="teamName" class="input cinematic-input" placeholder="Example: Chargers"></div>
+        </div>
+        <div class="language-entry-card">
+          <div>
+            <label class="label" for="languageMode">LANGUAGE / IDIOMA</label>
+            <select id="languageMode" class="input language-select">
+              <option value="en">🇺🇸 English</option>
+              <option value="es">🇲🇽 Español</option>
+              <option value="both">🇺🇸 + 🇲🇽 English + Español</option>
+            </select>
+          </div>
+          <div id="languageHelp" class="language-help">Spanish mode uses the Spanish question text when it is available. Dual mode shows English and Spanish together.</div>
         </div>
         <div class="setup-actions"><button id="joinBtn" class="btn btn-primary launch-btn">⚡ JOIN THE CHALLENGE</button>
 </div>
@@ -42,17 +54,28 @@
         <div class="brand-logo-shell"><img src="callaway-chargers-logo.png" class="brand-logo" alt="Callaway Chargers JROTC"></div>
         <div><div class="orange-kicker">TEAM CONTROL</div><div id="teamLabel" class="brand-title">YOUR TEAM</div><div class="brand-sub">ROOM <strong id="roomLabel"></strong></div></div>
       </div>
-      <div class="broadcast-meta"><div id="connectionBadge" class="connection-badge">● CONNECTING</div><div class="meta-stat"><small>GAME STATUS</small><strong id="answerState">WAITING</strong></div></div>
+      <div class="broadcast-meta">
+        <div id="connectionBadge" class="connection-badge">● CONNECTING</div>
+        <div class="language-live-control">
+          <label for="languageModeGame">EN / ES</label>
+          <select id="languageModeGame">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="both">EN + ES</option>
+          </select>
+        </div>
+        <div class="meta-stat"><small id="gameStatusLabel">GAME STATUS</small><strong id="answerState">WAITING</strong></div>
+      </div>
     </header>
 
     <div class="team-game-grid stadium-team-grid">
       <section class="question-arena">
         <section class="status-command-bar team-status-command timer-team-command">
-          <div class="round-wrap"><span class="bar-label">CURRENT ROUND</span><strong id="roundText">Waiting for host...</strong></div>
-          <div class="team-instruction">TAP ANY ANSWER TO CHANGE YOUR SELECTION BEFORE LOCK</div>
+          <div class="round-wrap"><span id="currentRoundLabel" class="bar-label">CURRENT ROUND</span><strong id="roundText">Waiting for host...</strong></div>
+          <div id="teamInstruction" class="team-instruction">TAP ANY ANSWER TO CHANGE YOUR SELECTION BEFORE LOCK</div>
           <div id="teamTimerRing" class="timer-ring team-timer-ring" aria-label="Time remaining">
             <div class="timer-ring-inner">
-              <span class="timer-caption">TIME</span>
+              <span id="timeLabel" class="timer-caption">TIME</span>
               <strong id="teamTimerText">--</strong>
             </div>
           </div>
@@ -61,7 +84,7 @@
         <section class="hero-question-card player stadium-arena team-arena">
           <div class="arena-speed-lines"></div><div class="arena-lightning lightning-one"></div><div class="arena-lightning lightning-two"></div>
           <img src="callaway-chargers-logo.png" class="arena-watermark" alt="">
-          <div class="question-label"><span class="pulse-dot"></span> LIVE QUESTION</div>
+          <div id="liveQuestionLabel" class="question-label"><span class="pulse-dot"></span> LIVE QUESTION</div>
           <h2 id="questionText" class="question-text">The instructor will start the first question.</h2>
           <div id="choices" class="choice-grid stadium-choices player-choices"></div>
           <div id="statusMessage" class="player-status stadium-player-status">READY FOR THE CHALLENGE.</div>
@@ -69,8 +92,8 @@
       </section>
 
       <aside class="glass-card leaderboard-card stadium-leaderboard team-leaderboard neon-card">
-        <div class="leaderboard-head"><div><div class="orange-kicker">LIVE RANKINGS</div><h2>LEADERBOARD</h2></div><span class="live-chip mini"><span class="live-dot"></span>LIVE</span></div>
-        <div class="leaderboard-podium-label">⚡ YOUR TEAM IS HIGHLIGHTED</div>
+        <div class="leaderboard-head"><div><div id="liveRankingsLabel" class="orange-kicker">LIVE RANKINGS</div><h2 id="leaderboardLabel">LEADERBOARD</h2></div><span class="live-chip mini"><span class="live-dot"></span>LIVE</span></div>
+        <div id="highlightLabel" class="leaderboard-podium-label">⚡ YOUR TEAM IS HIGHLIGHTED</div>
         <div id="scoreboard"></div>
       </aside>
     </div>
@@ -80,6 +103,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 <script src="firebase-config.js"></script>
-<script src="effects.js"></script>
-<script src="app.js"></script>
+<script src="effects.js?v=MASTERFINAL0821"></script>
+<script src="app.js?v=MASTERFINAL0821"></script>
 </body></html>

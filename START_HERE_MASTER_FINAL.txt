@@ -1,0 +1,69 @@
+CALLAWAY CHARGERS — MASTER FINAL DEPLOYMENT
+=============================================
+
+BUILD: MASTER FINAL 2026.08.21
+
+THIS IS THE ONLY PACKAGE TO USE GOING FORWARD.
+
+1. Open your GitHub repository:
+   djcaptaind/Speed-Questions
+
+2. Upload ALL files from this folder to the ROOT of the repository.
+   Replace every matching file.
+
+3. Important files that MUST be replaced together:
+   - host.html
+   - host.js
+   - index.html
+   - app.js
+   - styles.css
+   - firebase-config.js
+   - questions.js
+   - effects.js
+   - question-manager.js
+   - question-csv.js
+   - team-join-qr.png
+   - callaway-chargers-logo.png
+
+4. Wait for GitHub Pages to finish deploying.
+
+5. Use ONLY this public instructor address for normal classroom play:
+   https://djcaptaind.github.io/Speed-Questions/host.html
+
+6. Cadets use:
+   https://djcaptaind.github.io/Speed-Questions/index.html
+
+7. When you create a room, the QR panel MUST say:
+   ✓ PUBLIC QR ACTIVE
+
+8. The URL below the QR MUST begin with:
+   https://djcaptaind.github.io/Speed-Questions/index.html?room=
+
+9. The instructor PIN is:
+   1974
+
+FEATURES INCLUDED
+-----------------
+- GOD MODE cinematic presentation
+- Performance optimized answer selection
+- Phone/Firebase question sync fixes
+- Adjustable question timer
+- Timer starts on Start/Next Question
+- Timer resets on Reveal
+- Automatic lock at zero
+- +100 Correct / -50 Wrong / -50 No Answer
+- Full Screen button
+- Instructor PIN
+- English / Español / EN+ES team modes
+- Spanish question/answer fields in Question Manager
+- Bilingual CSV import/export
+- Public GitHub QR + bundled fallback QR
+- Fastest correct team
+- Streak display
+- Champion/podium presentation
+- Team answer changing until lock
+
+IMPORTANT
+---------
+Delete or ignore older downloaded folders so you do not accidentally
+open an earlier version of host.html.

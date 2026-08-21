@@ -1,3 +1,7 @@
+# CALLAWAY CHARGERS — MASTER FINAL 2026.08.21
+
+Use only this build going forward. See `START_HERE_MASTER_FINAL.txt` for deployment instructions.
+
 # Callaway Chargers Challenge — Stadium Broadcast Edition
 
 This package is a full visual upgrade of the working Callaway JROTC Firebase team answer game.
@@ -113,3 +117,82 @@ Because this game is hosted as a static GitHub Pages site, a PIN stored in JavaS
 - Phones preview the question during countdown, then answers enable at GO.
 - Backup listeners watch currentQuestion and phase.
 - LIVE / RECONNECTING badge shows Firebase status.
+
+
+## Critical Phone Runtime Fix
+
+This update fixes the exact JavaScript failure that could leave a cadet phone on:
+**“The instructor will start the first question.”**
+
+The GOD MODE/Performance build referenced several runtime variables before they were
+declared (`previousCinematicKey`, render keys, and answer-write queue state). When the
+first Firebase room update arrived, that caused the phone listener to stop before it
+could render the question.
+
+Fixes:
+- Declares all GOD MODE / Performance runtime variables.
+- Protects Firebase rendering from animation/effects errors.
+- Forces the phone connection badge to LIVE when room state is successfully received.
+- Keeps the pre-countdown question sync fix.
+- Keeps instructor PIN, timer, full screen, performance mode, and all scoring/effects.
+
+
+## English / Spanish Bilingual Team Mode
+
+Cadets choose a language when joining:
+
+- 🇺🇸 **English**
+- 🇲🇽 **Español**
+- 🇺🇸 + 🇲🇽 **English + Español**
+
+The instructor screen stays in English. Spanish-support teams are identified with **ES** or **EN/ES** badges on the host leaderboard.
+
+### Question translations
+
+The game does not send question text to an outside translation service. Spanish question text is stored with the question bank so the instructor controls the wording.
+
+The Question Manager now includes optional Spanish fields for:
+- Question Spanish
+- Answer A Spanish
+- Answer B Spanish
+- Answer C Spanish
+- Answer D Spanish
+
+CSV import/export now supports the same Spanish columns. A ready-to-use file named
+`Callaway_Bilingual_Question_Bank_Template.csv` is included in this package.
+
+If a cadet selects Español but a question has no Spanish translation, the game safely displays the English question with a notice instead of showing a blank screen.
+
+The five default sample questions in `questions.js` include Spanish support.
+
+
+## QR Reliability Upgrade
+
+The game now has two QR layers:
+
+1. **Room-specific QR** — when QRCode.js loads, the QR sends cadets directly to the team page and automatically fills the room code.
+2. **Permanent fallback QR** — `team-join-qr.png` is bundled in the repository. If the school network blocks the external QR library, this QR still opens the team page. Cadets then type the large room code shown directly below the QR.
+
+Other changes:
+- QR display increased to 220 × 220.
+- High error correction is used for the room-specific QR.
+- Larger white quiet zone improves scanning from a projector/TV.
+- Direct team join link is displayed as a backup.
+- Scanned room codes are prefilled and locked on the team page.
+
+
+## Critical QR Public URL Fix
+
+If `host.html` is opened from the instructor computer's Downloads folder, the browser URL begins with `file:///C:/...`.
+
+A phone cannot access that local Windows path.
+
+This build forces every room-specific QR code to point to:
+
+`https://djcaptaind.github.io/Speed-Questions/index.html?room=ROOMCODE`
+
+Therefore:
+- The instructor may run the host screen locally or from GitHub Pages.
+- Cadet phones always open the public GitHub Pages team screen.
+- The active room code is automatically filled when the room-specific QR is generated.
+- The permanent fallback QR also points to the public GitHub Pages team page.

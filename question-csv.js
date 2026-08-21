@@ -58,6 +58,11 @@
       const di = findColumn(headers, 'Answer D');
       const ri = findColumn(headers, 'Correct Answer', 'Correct');
       const pi = findColumn(headers, 'Points');
+      const qesi = findColumn(headers, 'Question Spanish', 'Pregunta', 'Pregunta Español', 'Question ES');
+      const aesi = findColumn(headers, 'Answer A Spanish', 'Respuesta A', 'Answer A ES');
+      const besi = findColumn(headers, 'Answer B Spanish', 'Respuesta B', 'Answer B ES');
+      const cesi = findColumn(headers, 'Answer C Spanish', 'Respuesta C', 'Answer C ES');
+      const desi = findColumn(headers, 'Answer D Spanish', 'Respuesta D', 'Answer D ES');
 
       if ([qi, ai, bi, ci, di, ri].some(i => i < 0)) {
         throw new Error('Required columns: Question, Answer A, Answer B, Answer C, Answer D, Correct Answer.');
@@ -78,18 +83,23 @@
         if (!question) throw new Error(`Row ${index + 2}: Question is blank.`);
         if (choices.some(v => !v)) throw new Error(`Row ${index + 2}: all four answer choices are required.`);
 
+        const questionEs = qesi >= 0 ? String(r[qesi] || '').trim() : '';
+        const choicesEs = [aesi, besi, cesi, desi].map(i => i >= 0 ? String(r[i] || '').trim() : '');
+        const spanishComplete = questionEs && choicesEs.every(Boolean);
+
         return {
           question,
           choices,
           answer,
-          points: Number.isFinite(points) ? points : 100
+          points: Number.isFinite(points) ? points : 100,
+          ...(spanishComplete ? { questionEs, choicesEs } : {})
         };
       });
     },
 
     export(questions) {
       const rows = [
-        ['Question','Answer A','Answer B','Answer C','Answer D','Correct Answer','Points'],
+        ['Question','Answer A','Answer B','Answer C','Answer D','Correct Answer','Points','Question Spanish','Answer A Spanish','Answer B Spanish','Answer C Spanish','Answer D Spanish'],
         ...questions.map(q => [
           q.question,
           q.choices[0],
@@ -97,7 +107,12 @@
           q.choices[2],
           q.choices[3],
           String.fromCharCode(65 + Number(q.answer)),
-          q.points || 100
+          q.points || 100,
+          q.questionEs || '',
+          q.choicesEs?.[0] || '',
+          q.choicesEs?.[1] || '',
+          q.choicesEs?.[2] || '',
+          q.choicesEs?.[3] || ''
         ])
       ];
 

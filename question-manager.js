@@ -41,7 +41,7 @@
         <div class="qm-number">${i+1}</div>
         <div class="qm-copy">
           <strong>${esc(q.question)}</strong>
-          <small>Correct: ${String.fromCharCode(65+Number(q.answer))} · ${q.points || 100} pts</small>
+          <small>Correct: ${String.fromCharCode(65+Number(q.answer))} · ${q.points || 100} pts ${q.questionEs && q.choicesEs?.length===4 ? '· 🇲🇽 Spanish ready' : '· English only'}</small>
         </div>
         <div class="qm-actions">
           <button class="btn btn-ghost" data-edit="${i}">Edit</button>
@@ -71,11 +71,13 @@
     editingIndex = index;
     const q = index >= 0
       ? questions[index]
-      : {question:'', choices:['','','',''], answer:0, points:100};
+      : {question:'', choices:['','','',''], questionEs:'', choicesEs:['','','',''], answer:0, points:100};
 
     $('qmEditorTitle').textContent = index >= 0 ? 'Edit Question' : 'Add Question';
     $('qmQuestion').value = q.question || '';
     ['A','B','C','D'].forEach((l,i)=>$('qmChoice'+l).value=q.choices?.[i]||'');
+    $('qmQuestionEs').value = q.questionEs || '';
+    ['A','B','C','D'].forEach((l,i)=>$('qmChoice'+l+'Es').value=q.choicesEs?.[i]||'');
     $('qmAnswer').value = String(q.answer ?? 0);
     $('qmPoints').value = String(q.points || 100);
     $('qmEditor').classList.remove('hidden');
@@ -90,13 +92,19 @@
   function saveEditor() {
     const question = $('qmQuestion').value.trim();
     const choices = ['A','B','C','D'].map(l=>$('qmChoice'+l).value.trim());
+    const questionEs = $('qmQuestionEs').value.trim();
+    const choicesEs = ['A','B','C','D'].map(l=>$('qmChoice'+l+'Es').value.trim());
     const answer = Number($('qmAnswer').value);
     const points = Number($('qmPoints').value) || 100;
 
     if (!question) return alert('Enter the question.');
     if (choices.some(x=>!x)) return alert('Enter all four answer choices.');
+    const anySpanish = questionEs || choicesEs.some(Boolean);
+    if (anySpanish && (!questionEs || choicesEs.some(x=>!x))) {
+      return alert('For Spanish support, enter the Spanish question and all four Spanish answer choices.');
+    }
 
-    const q = {question, choices, answer, points};
+    const q = {question, choices, answer, points, ...(anySpanish ? {questionEs, choicesEs} : {})};
 
     if (editingIndex >= 0) questions[editingIndex] = q;
     else questions.push(q);
@@ -177,11 +185,15 @@
           if (!q.question || !Array.isArray(q.choices) || q.choices.length !== 4) {
             throw new Error(`Question ${i+1} is incomplete.`);
           }
+          const questionEs = String(q.questionEs || '').trim();
+          const choicesEs = Array.isArray(q.choicesEs) ? q.choicesEs.map(String) : [];
+          const spanishComplete = questionEs && choicesEs.length === 4 && choicesEs.every(x => String(x).trim());
           return {
             question: String(q.question),
             choices: q.choices.map(String),
             answer: Number(q.answer),
-            points: Number(q.points) || 100
+            points: Number(q.points) || 100,
+            ...(spanishComplete ? {questionEs, choicesEs} : {})
           };
         });
         questions = cleaned;

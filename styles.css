@@ -198,3 +198,140 @@ body[data-phase="revealed"] .stadium-arena{animation:revealArena .7s ease}
 .connection-badge.connection-offline{color:#ffaf69;border-color:rgba(255,142,66,.30);background:rgba(255,106,0,.10)}
 .preview-choice{opacity:.78!important;filter:saturate(.78)}
 body[data-firebase-connected="false"] .player-status:before{content:"RECONNECTING TO LIVE GAME • ";color:#ffad68;font-weight:1000}
+
+
+/* =========================================================
+   ENGLISH / SPANISH BILINGUAL TEAM MODE
+   ========================================================= */
+.language-entry-card{
+  margin-top:14px;padding:14px;border-radius:15px;
+  border:1px solid rgba(255,255,255,.10);
+  background:linear-gradient(120deg,rgba(24,98,195,.08),rgba(255,106,0,.06));
+}
+.language-select{font-weight:900}
+.language-help{margin-top:8px;color:#91a8c6;font-size:.72rem;line-height:1.45}
+.language-live-control{
+  display:flex;align-items:center;gap:7px;
+  padding:7px 10px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.13);
+  background:rgba(255,255,255,.055)
+}
+.language-live-control label{font-size:.58rem;color:#9fb3cf;font-weight:1000;letter-spacing:.08em}
+.language-live-control select{
+  background:#06172f;color:white;border:0;border-radius:8px;
+  padding:5px 7px;font-weight:900;outline:none
+}
+.bilingual-primary{display:block}
+.bilingual-secondary{
+  display:block;margin-top:10px;padding-top:10px;
+  border-top:1px solid rgba(255,255,255,.12);
+  color:#8fc5ff;font-size:.55em;line-height:1.18;
+  letter-spacing:-.015em;font-weight:800
+}
+.choice-copy{display:block;min-width:0;flex:1}
+.choice-primary{display:block}
+.choice-secondary{
+  display:block;margin-top:5px;color:#8fc5ff;
+  font-size:.82em;line-height:1.25;font-weight:750
+}
+.translation-missing{color:#ffb26e!important;font-style:italic}
+.lang-badge,.host-lang-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:2px 6px;border-radius:999px;
+  border:1px solid rgba(83,171,255,.30);
+  background:rgba(31,118,221,.13);
+  color:#84c4ff;font-size:.52rem;font-weight:1000;
+  letter-spacing:.06em;vertical-align:middle
+}
+.lang-badge.dual,.host-lang-badge.dual{
+  border-color:rgba(255,141,58,.33);
+  background:rgba(255,106,0,.11);color:#ffb06d
+}
+.qm-language-divider{
+  display:flex;align-items:center;gap:10px;
+  margin:18px 0 12px;color:#ffad68;font-size:.7rem;
+  font-weight:1000;letter-spacing:.12em
+}
+.qm-language-divider:before,.qm-language-divider:after{
+  content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,rgba(255,139,58,.35))
+}
+.qm-language-divider:after{background:linear-gradient(90deg,rgba(255,139,58,.35),transparent)}
+@media(max-width:560px){
+  .language-live-control{width:100%;justify-content:space-between;border-radius:12px}
+  .language-live-control select{flex:1}
+  .bilingual-secondary{font-size:.48em}
+  .choice-secondary{font-size:.78em}
+}
+
+
+/* =========================================================
+   QR CODE RELIABILITY MODE
+   ========================================================= */
+.qr-box-xl{
+  width:max-content!important;
+  margin:0 auto!important;
+  padding:14px!important;
+  background:#fff!important;
+  border:7px solid #fff!important;
+  border-radius:20px!important;
+  box-shadow:0 18px 45px rgba(0,0,0,.42),0 0 0 2px rgba(255,255,255,.15)!important;
+}
+.qr-box-xl canvas,.qr-box-xl img,.fallback-qr-image{
+  display:block!important;
+  width:220px!important;
+  height:220px!important;
+  object-fit:contain!important;
+  max-width:none!important;
+  background:#fff!important;
+}
+.qr-status{
+  margin:9px 0 4px;text-align:center;
+  color:#67e98d;font-size:.59rem;font-weight:1000;letter-spacing:.08em
+}
+.qr-status.qr-fallback-status{color:#ffc078}
+.join-direct-link{
+  display:block;margin:7px auto;padding:9px 10px;
+  border-radius:10px;text-align:center;text-decoration:none;
+  background:rgba(35,116,223,.12);
+  border:1px solid rgba(86,158,252,.25);
+  color:#8fc5ff;font-size:.62rem;font-weight:1000;letter-spacing:.06em
+}
+.room-from-qr{
+  border-color:rgba(82,231,126,.48)!important;
+  box-shadow:0 0 0 3px rgba(82,231,126,.11)!important;
+}
+@media(max-width:560px){
+  .qr-box-xl canvas,.qr-box-xl img,.fallback-qr-image{width:195px!important;height:195px!important}
+}
+
+
+/* PUBLIC QR URL FIX */
+.qr-status.public-link{color:#6ff397}
+.mini-url{word-break:break-all}
+
+
+/* =========================================================
+   MASTER FINAL BUILD — PUBLIC QR DIAGNOSTICS
+   ========================================================= */
+.master-build-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  margin-left:7px;padding:3px 7px;border-radius:999px;
+  border:1px solid rgba(109,244,153,.32);
+  background:rgba(65,214,114,.11);
+  color:#77ef9f;font-size:.50rem;font-weight:1000;letter-spacing:.08em;
+  vertical-align:middle
+}
+.host-location-status{
+  margin-top:5px;text-align:center;
+  color:#75eba0;font-size:.55rem;font-weight:1000;letter-spacing:.07em
+}
+.host-location-status.local-host-warning{color:#ffc278}
+.qr-room-notice{
+  width:max-content;max-width:100%;margin:7px 0 12px;
+  padding:7px 10px;border-radius:999px;
+  background:rgba(65,214,114,.10);
+  border:1px solid rgba(109,244,153,.30);
+  color:#7cf0a3;font-size:.65rem;font-weight:1000;letter-spacing:.06em
+}
+.mini-url{word-break:break-all!important}
+body[data-qr-mode="public"] #qrStatus{color:#73ef9d!important}

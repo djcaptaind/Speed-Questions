@@ -1,5 +1,8 @@
 (() => {
   const $ = id => document.getElementById(id);
+  const BUILD_VERSION = "MASTER FINAL 2026.08.21";
+  const PUBLIC_HOST_URL = "https://djcaptaind.github.io/Speed-Questions/host.html";
+  const PUBLIC_TEAM_URL = "https://djcaptaind.github.io/Speed-Questions/index.html";
   let db, roomRef, roomCode, state = {}, questionIndex = 0, previousPhase = null, previousIndex = null, previousScores = {};
   let timerInterval = null, autoLockInFlight = false, serverTimeOffset = 0;
 
@@ -300,16 +303,60 @@
   }
   async function revealSequence(){if(!roomRef||!state.currentQuestion||state.phase==='reveal_countdown')return;await roomRef.update({phase:'reveal_countdown',timerRunning:false,timerEndAt:null,revealEndAt:Date.now()+2400});for(const n of ['3','2','1']){showCinematic('ANSWER REVEAL',n,'LOCKED IN','reveal');GameFX.sounds.lock();await sleep(600)}showCinematic('ANSWER REVEAL','REVEAL!','SCORE IMPACT','go');GameFX.sounds.correct();await sleep(400);hideCinematic();await scoreAndReveal()}
   function renderJoinQr() {
-    const join = new URL('index.html', window.location.href);
+    // MASTER FINAL:
+    // Always encode the PUBLIC GitHub Pages team URL.
+    // Never encode file:///C:/... even when host.html is opened from Downloads.
+    const join = new URL(PUBLIC_TEAM_URL);
     join.searchParams.set('room', roomCode);
+    join.searchParams.set('v', 'master-final');
     const joinUrl = join.href;
-    $('joinRoomCode').textContent = roomCode;
-    $('joinUrlText').textContent = joinUrl;
-    $('joinQr').innerHTML = '';
-    if (window.QRCode) new QRCode($('joinQr'), { text: joinUrl, width: 150, height: 150, correctLevel: QRCode.CorrectLevel.M });
-    else $('joinQr').textContent = 'QR unavailable';
-  }
 
+    $('joinRoomCode').textContent = roomCode;
+
+    const urlText = $('joinUrlText');
+    if (urlText) urlText.textContent = joinUrl;
+
+    const direct = $('joinDirectLink');
+    if (direct) direct.href = joinUrl;
+
+    const qr = $('joinQr');
+    const status = $('qrStatus');
+
+    // The bundled QR is the no-dependency fallback.
+    // It always opens the public team page; students type the displayed room code.
+    qr.innerHTML = '<img src="team-join-qr.png" class="fallback-qr-image" alt="QR code to open the public Chargers Challenge team page">';
+
+    if (window.QRCode) {
+      try {
+        qr.innerHTML = '';
+        new QRCode(qr, {
+          text: joinUrl,
+          width: 220,
+          height: 220,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H
+        });
+        if (status) {
+          status.textContent = '✓ PUBLIC QR ACTIVE • ROOM AUTO-FILLS';
+          status.classList.remove('qr-fallback-status', 'qr-error');
+        }
+      } catch (err) {
+        console.warn('[Chargers] Dynamic QR failed; using bundled public QR.', err);
+        qr.innerHTML = '<img src="team-join-qr.png" class="fallback-qr-image" alt="QR code to open the public Chargers Challenge team page">';
+        if (status) {
+          status.textContent = '✓ PUBLIC QR ACTIVE • ENTER ROOM CODE';
+          status.classList.add('qr-fallback-status');
+        }
+      }
+    } else if (status) {
+      status.textContent = '✓ PUBLIC QR ACTIVE • ENTER ROOM CODE';
+      status.classList.add('qr-fallback-status');
+    }
+
+    document.body.dataset.qrMode = 'public';
+    console.log(`[Chargers] ${BUILD_VERSION} QR URL:`, joinUrl);
+  }
   $('createBtn').addEventListener('click', async () => {
     $('setupError').textContent = '';
     roomCode = $('roomCode').value.trim().toUpperCase();
@@ -331,6 +378,14 @@
       $('setupView').classList.add('hidden');
       $('hostView').classList.remove('hidden');
       $('roomLabel').textContent = roomCode;
+      if ($('buildVersion')) $('buildVersion').textContent = BUILD_VERSION;
+      if ($('hostLocationStatus')) {
+        const local = location.protocol === 'file:';
+        $('hostLocationStatus').textContent = local
+          ? 'LOCAL HOST • QR STILL USES PUBLIC GITHUB'
+          : 'PUBLIC GITHUB HOST';
+        $('hostLocationStatus').classList.toggle('local-host-warning', local);
+      }
       renderJoinQr();
       GameFX.addSoundToggle();
       GameFX.sounds.join();
@@ -434,7 +489,7 @@
       return `<div class="host-team-row rank-${idx+1}">
         <div class="leader-main">
           <span class="rank-badge">${medal}</span>
-          <div class="leader-copy"><strong>${esc(t.name || id)}</strong><span class="leader-delta ${delta>0?'score-up':delta<0?'score-down':''}">${delta>0?`+${delta}`:delta<0?`${delta}`:'LIVE SCORE'}${Number(t.streak||0)>=2?` • 🔥 ${t.streak} STREAK`:''}</span></div>
+          <div class="leader-copy"><strong>${esc(t.name || id)}${t.language==='es'?' <span class="host-lang-badge">ES</span>':t.language==='both'?' <span class="host-lang-badge dual">EN/ES</span>':''}</strong><span class="leader-delta ${delta>0?'score-up':delta<0?'score-down':''}">${delta>0?`+${delta}`:delta<0?`${delta}`:'LIVE SCORE'}${Number(t.streak||0)>=2?` • 🔥 ${t.streak} STREAK`:''}</span></div>
           <span class="leader-score ${score>0?'score-good':score<0?'score-bad':''}">${score}</span>
         </div>
         <div class="adjust">
